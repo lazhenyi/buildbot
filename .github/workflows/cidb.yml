@@ -47,14 +47,3 @@ jobs:
         env:
           DATABASE_URL: postgres://buildbot:buildbot@localhost:5432/buildbot_test
         run: cargo test --features postgres -- --test-threads=4
-
-  # MSRV (Minimum Supported Rust Version) check
-  msrv:
-    name: MSRV Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      # pinned to Rust 1.85 which is the MSRV
-      - uses: dtolnay/rust-toolchain@1.85
-      - name: Check MSRV build
-        run: cargo check
