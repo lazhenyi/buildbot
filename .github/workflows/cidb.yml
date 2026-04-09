@@ -55,6 +55,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # pinned to Rust 1.70 which is the MSRV
-      - uses: dtolnay/rust-toolchain@1.70
+      - uses: dtolnay/rust-toolchain@1.100
       - name: Check MSRV build
         run: cargo check
