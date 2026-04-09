@@ -1,7 +1,7 @@
 //! Web server for Buildbot UI
 
-use actix_web::{web, App, HttpServer, HttpResponse, middleware};
 use actix_files::Files;
+use actix_web::{middleware, web, App, HttpResponse, HttpServer};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -30,9 +30,7 @@ impl Default for WebServerConfig {
 }
 
 /// Shared API state for web handlers
-pub type SharedApiState = Arc<tokio::sync::RwLock<
-    crate::api::handlers::ApiState
->>;
+pub type SharedApiState = Arc<tokio::sync::RwLock<crate::api::handlers::ApiState>>;
 
 /// Buildbot web server
 pub struct WebServer {
@@ -43,7 +41,10 @@ pub struct WebServer {
 impl WebServer {
     pub fn new(config: WebServerConfig) -> Self {
         let (shutdown_tx, _) = tokio::sync::watch::channel(false);
-        Self { config, shutdown_tx }
+        Self {
+            config,
+            shutdown_tx,
+        }
     }
 
     pub fn shutdown_handle(&self) -> tokio::sync::watch::Sender<bool> {
@@ -74,10 +75,7 @@ impl WebServer {
                 if static_dir.is_dir() {
                     app.service(Files::new("/static", &static_dir).show_files_listing())
                 } else {
-                    tracing::warn!(
-                        "Static directory '{}' does not exist",
-                        static_dir.display()
-                    );
+                    tracing::warn!("Static directory '{}' does not exist", static_dir.display());
                     app
                 }
             })
@@ -115,11 +113,8 @@ async fn jobs_handler() -> HttpResponse {
 
 async fn job_detail_handler(path: web::Path<String>) -> HttpResponse {
     let job_id = path.into_inner();
-    let html = include_str!("../../www/job_detail.html")
-        .replace("{{JOB_ID}}", &job_id);
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .body(html)
+    let html = include_str!("../../www/job_detail.html").replace("{{JOB_ID}}", &job_id);
+    HttpResponse::Ok().content_type("text/html").body(html)
 }
 
 async fn runners_handler() -> HttpResponse {

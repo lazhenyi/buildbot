@@ -6,8 +6,8 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use buildbot::master::MasterService;
 use buildbot::config::ConfigLoader;
+use buildbot::master::MasterService;
 
 #[derive(Parser)]
 #[command(name = "buildbot")]
@@ -106,7 +106,11 @@ async fn run_master(
     }
 
     tracing::info!("Master name: {}", master_config.name);
-    tracing::info!("API port: {}, Web port: {}", master_config.api_port, master_config.web_port);
+    tracing::info!(
+        "API port: {}, Web port: {}",
+        master_config.api_port,
+        master_config.web_port
+    );
 
     // Initialize database
     let db = Database::new(&master_config.database_url).await?;

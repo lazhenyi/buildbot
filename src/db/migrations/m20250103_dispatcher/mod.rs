@@ -27,27 +27,15 @@ impl MigrationTrait for Migration {
                             .unique_key(),
                     )
                     .col(ColumnDef::new(DispatcherJobs::Name).string().not_null())
-                    .col(
-                        ColumnDef::new(DispatcherJobs::SortKey)
-                            .integer()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::Status)
-                            .string()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(DispatcherJobs::SortKey).integer().not_null())
+                    .col(ColumnDef::new(DispatcherJobs::Status).string().not_null())
                     .col(
                         ColumnDef::new(DispatcherJobs::Labels)
                             .text()
                             .not_null()
                             .default("[]".to_string()),
                     )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::SourceType)
-                            .text()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(DispatcherJobs::SourceType).text().not_null())
                     .col(
                         ColumnDef::new(DispatcherJobs::SourceJson)
                             .text()
@@ -59,47 +47,19 @@ impl MigrationTrait for Migration {
                             .text()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::Branch)
-                            .text()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::Revision)
-                            .text()
-                            .null(),
-                    )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::RunnerName)
-                            .text()
-                            .null(),
-                    )
+                    .col(ColumnDef::new(DispatcherJobs::Branch).text().not_null())
+                    .col(ColumnDef::new(DispatcherJobs::Revision).text().null())
+                    .col(ColumnDef::new(DispatcherJobs::RunnerName).text().null())
                     .col(
                         ColumnDef::new(DispatcherJobs::EnvJson)
                             .text()
                             .not_null()
                             .default("{}".to_string()),
                     )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::ExitCode)
-                            .integer()
-                            .null(),
-                    )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::ErrorMessage)
-                            .text()
-                            .null(),
-                    )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::ScriptPath)
-                            .text()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(DispatcherJobs::Workdir)
-                            .text()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(DispatcherJobs::ExitCode).integer().null())
+                    .col(ColumnDef::new(DispatcherJobs::ErrorMessage).text().null())
+                    .col(ColumnDef::new(DispatcherJobs::ScriptPath).text().not_null())
+                    .col(ColumnDef::new(DispatcherJobs::Workdir).text().not_null())
                     .col(
                         ColumnDef::new(DispatcherJobs::CreatedAt)
                             .big_integer()
@@ -253,14 +213,10 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(
-                Table::drop().table(DispatcherRunners::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(DispatcherRunners::Table).to_owned())
             .await?;
         manager
-            .drop_table(
-                Table::drop().table(DispatcherJobs::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(DispatcherJobs::Table).to_owned())
             .await?;
         Ok(())
     }

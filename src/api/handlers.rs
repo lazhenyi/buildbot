@@ -9,9 +9,9 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::db::Database;
-use crate::www::server::SharedApiState;
-use crate::dispatcher::{DispatcherState, job::JobStatus};
 use crate::dispatcher::runner::{Runner, RunnerCapabilities, RunnerType};
+use crate::dispatcher::{job::JobStatus, DispatcherState};
+use crate::www::server::SharedApiState;
 
 /// Application state shared across handlers
 pub struct ApiState {
@@ -89,7 +89,9 @@ pub async fn handle_github_webhook(
         .map(|s| s.as_str())
         .or_else(|| payload.after.as_ref().map(|s| s.as_str()));
 
-    let branch = payload.git_ref.as_ref()
+    let branch = payload
+        .git_ref
+        .as_ref()
         .and_then(|r| r.strip_prefix("refs/heads/"))
         .map(String::from);
 
@@ -163,9 +165,14 @@ pub async fn handle_github_webhook(
                         Some(&rev),
                         &ci_dir,
                         &requirements_path,
-                        JobSource::Webhook { repository_id: 0, branch: branch_name.clone() },
+                        JobSource::Webhook {
+                            repository_id: 0,
+                            branch: branch_name.clone(),
+                        },
                         vec![],
-                    ).await {
+                    )
+                    .await
+                    {
                         Ok(count) => {
                             tracing::info!("Dispatcher: enqueued {} jobs from CI directory", count);
                         }
@@ -224,9 +231,7 @@ pub struct CompleteJobRequest {
 }
 
 /// Get dispatcher info
-pub async fn get_dispatcher_info(
-    state: web::Data<SharedApiState>,
-) -> impl Responder {
+pub async fn get_dispatcher_info(state: web::Data<SharedApiState>) -> impl Responder {
     let guard = state.read().await;
     let dispatcher = guard.dispatcher.read().await;
     let jobs = dispatcher.list_jobs(None).await;
@@ -250,15 +255,18 @@ pub async fn get_jobs(
     let guard = state.read().await;
     let dispatcher = guard.dispatcher.read().await;
 
-    let status_filter = query.status.as_ref().and_then(|s| match s.to_lowercase().as_str() {
-        "pending" => Some(JobStatus::Pending),
-        "running" => Some(JobStatus::Running),
-        "success" => Some(JobStatus::Success),
-        "failed" => Some(JobStatus::Failed),
-        "cancelled" => Some(JobStatus::Cancelled),
-        "lost" => Some(JobStatus::Lost),
-        _ => None,
-    });
+    let status_filter = query
+        .status
+        .as_ref()
+        .and_then(|s| match s.to_lowercase().as_str() {
+            "pending" => Some(JobStatus::Pending),
+            "running" => Some(JobStatus::Running),
+            "success" => Some(JobStatus::Success),
+            "failed" => Some(JobStatus::Failed),
+            "cancelled" => Some(JobStatus::Cancelled),
+            "lost" => Some(JobStatus::Lost),
+            _ => None,
+        });
 
     let mut jobs = dispatcher.list_jobs(status_filter).await;
 
@@ -285,15 +293,18 @@ pub async fn get_jobs(
         runner_name: Option<String>,
     }
 
-    let job_infos: Vec<JobInfo> = jobs.iter().map(|j| JobInfo {
-        id: j.id.clone(),
-        name: j.name.clone(),
-        status: format!("{:?}", j.status),
-        labels: j.labels.clone(),
-        repository_url: j.repository_url.clone(),
-        branch: j.branch.clone(),
-        runner_name: j.runner_name.clone(),
-    }).collect();
+    let job_infos: Vec<JobInfo> = jobs
+        .iter()
+        .map(|j| JobInfo {
+            id: j.id.clone(),
+            name: j.name.clone(),
+            status: format!("{:?}", j.status),
+            labels: j.labels.clone(),
+            repository_url: j.repository_url.clone(),
+            branch: j.branch.clone(),
+            runner_name: j.runner_name.clone(),
+        })
+        .collect();
 
     HttpResponse::Ok().json(json!({
         "total": job_infos.len(),
@@ -302,10 +313,7 @@ pub async fn get_jobs(
 }
 
 /// Get a specific job
-pub async fn get_job(
-    state: web::Data<SharedApiState>,
-    path: web::Path<String>,
-) -> impl Responder {
+pub async fn get_job(state: web::Data<SharedApiState>, path: web::Path<String>) -> impl Responder {
     let job_id = path.into_inner();
     let guard = state.read().await;
     let dispatcher = guard.dispatcher.read().await;
@@ -351,12 +359,10 @@ pub async fn cancel_job(
                 "message": "Job cancelled",
             }))
         }
-        None => {
-            HttpResponse::NotFound().json(json!({
-                "error": "Job not found or cannot be cancelled",
-                "job_id": job_id,
-            }))
-        }
+        None => HttpResponse::NotFound().json(json!({
+            "error": "Job not found or cannot be cancelled",
+            "job_id": job_id,
+        })),
     }
 }
 
@@ -400,11 +406,9 @@ pub async fn poll_job(
                 "env": job.env,
             }))
         }
-        None => {
-            HttpResponse::Ok().json(json!({
-                "message": "No pending jobs available",
-            }))
-        }
+        None => HttpResponse::Ok().json(json!({
+            "message": "No pending jobs available",
+        })),
     }
 }
 
@@ -418,26 +422,31 @@ pub async fn complete_job(
     let guard = state.read().await;
     let dispatcher = guard.dispatcher.read().await;
 
-    match dispatcher.complete_job(
-        &job_id,
-        body.exit_code,
-        body.error_message.clone(),
-        body.duration_secs,
-    ).await {
+    match dispatcher
+        .complete_job(
+            &job_id,
+            body.exit_code,
+            body.error_message.clone(),
+            body.duration_secs,
+        )
+        .await
+    {
         Some(job) => {
-            tracing::info!("Job {} completed with exit_code {:?}", job_id, body.exit_code);
+            tracing::info!(
+                "Job {} completed with exit_code {:?}",
+                job_id,
+                body.exit_code
+            );
             HttpResponse::Ok().json(json!({
                 "status": "ok",
                 "job_id": job.id,
                 "final_status": format!("{:?}", job.status),
             }))
         }
-        None => {
-            HttpResponse::NotFound().json(json!({
-                "error": "Job not found",
-                "job_id": job_id,
-            }))
-        }
+        None => HttpResponse::NotFound().json(json!({
+            "error": "Job not found",
+            "job_id": job_id,
+        })),
     }
 }
 
@@ -459,16 +468,19 @@ pub async fn get_runners(state: web::Data<SharedApiState>) -> impl Responder {
         last_heartbeat_at: i64,
     }
 
-    let runner_infos: Vec<RunnerInfo> = runners.iter().map(|r| RunnerInfo {
-        name: r.name.clone(),
-        runner_type: format!("{:?}", r.runner_type),
-        labels: r.labels.clone(),
-        connected: r.connected,
-        status: r.status.clone(),
-        max_jobs: r.max_jobs as i32,
-        active_jobs: r.active_jobs.len(),
-        last_heartbeat_at: r.last_heartbeat_at.timestamp(),
-    }).collect();
+    let runner_infos: Vec<RunnerInfo> = runners
+        .iter()
+        .map(|r| RunnerInfo {
+            name: r.name.clone(),
+            runner_type: format!("{:?}", r.runner_type),
+            labels: r.labels.clone(),
+            connected: r.connected,
+            status: r.status.clone(),
+            max_jobs: r.max_jobs as i32,
+            active_jobs: r.active_jobs.len(),
+            last_heartbeat_at: r.last_heartbeat_at.timestamp(),
+        })
+        .collect();
 
     HttpResponse::Ok().json(json!({
         "total": runner_infos.len(),
@@ -487,11 +499,7 @@ pub async fn register_runner(
         _ => RunnerType::Ephemeral,
     };
 
-    let runner = Runner::new(
-        body.name.clone(),
-        runner_type,
-        body.labels.clone(),
-    );
+    let runner = Runner::new(body.name.clone(), runner_type, body.labels.clone());
 
     let guard = state.read().await;
     let dispatcher = guard.dispatcher.read().await;
@@ -514,19 +522,15 @@ pub async fn runner_heartbeat(
     let dispatcher = guard.dispatcher.read().await;
 
     match dispatcher.runner_heartbeat(&body.name).await {
-        Some(runner) => {
-            HttpResponse::Ok().json(json!({
-                "status": "ok",
-                "name": runner.name,
-                "message": "Heartbeat received",
-            }))
-        }
-        None => {
-            HttpResponse::NotFound().json(json!({
-                "error": "Runner not found",
-                "name": body.name,
-            }))
-        }
+        Some(runner) => HttpResponse::Ok().json(json!({
+            "status": "ok",
+            "name": runner.name,
+            "message": "Heartbeat received",
+        })),
+        None => HttpResponse::NotFound().json(json!({
+            "error": "Runner not found",
+            "name": body.name,
+        })),
     }
 }
 

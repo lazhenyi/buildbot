@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      # pinned to Rust 1.70 which is the MSRV
-      - uses: dtolnay/rust-toolchain@1.100
+      # pinned to Rust 1.80 which is the MSRV
+      - uses: dtolnay/rust-toolchain@1.80
       - name: Check MSRV build
         run: cargo check

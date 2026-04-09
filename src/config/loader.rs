@@ -2,8 +2,8 @@
 //!
 //! Loads Dispatcher configuration from YAML files.
 
-use std::path::{Path, PathBuf};
 use serde::Deserialize;
+use std::path::{Path, PathBuf};
 
 use crate::error::{BuildbotError, Result};
 
@@ -26,11 +26,21 @@ impl ConfigLoader {
 
     /// Load configuration from a YAML file
     pub async fn load_from_file(&self, path: &Path) -> Result<YamlConfig> {
-        let content = tokio::fs::read_to_string(path).await
-            .map_err(|e| BuildbotError::Config(format!("Failed to read config file '{}': {}", path.display(), e)))?;
+        let content = tokio::fs::read_to_string(path).await.map_err(|e| {
+            BuildbotError::Config(format!(
+                "Failed to read config file '{}': {}",
+                path.display(),
+                e
+            ))
+        })?;
 
-        let config: YamlConfig = serde_yaml::from_str(&content)
-            .map_err(|e| BuildbotError::Config(format!("Failed to parse YAML config '{}': {}", path.display(), e)))?;
+        let config: YamlConfig = serde_yaml::from_str(&content).map_err(|e| {
+            BuildbotError::Config(format!(
+                "Failed to parse YAML config '{}': {}",
+                path.display(),
+                e
+            ))
+        })?;
 
         Ok(config)
     }
@@ -114,40 +124,51 @@ use crate::master::config::MasterConfig;
 impl YamlConfig {
     /// Convert YAML config to MasterConfig
     pub fn into_master_config(self, basedir: PathBuf) -> MasterConfig {
-        let master_name = self.master
+        let master_name = self
+            .master
             .as_ref()
             .map(|m| m.name.clone())
             .unwrap_or_else(default_name);
 
-        let web_url = self.master
+        let web_url = self
+            .master
             .as_ref()
             .and_then(|m| {
-                if m.web_url.is_empty() { None } else { Some(m.web_url.clone()) }
+                if m.web_url.is_empty() {
+                    None
+                } else {
+                    Some(m.web_url.clone())
+                }
             })
             .unwrap_or_else(default_web_url);
 
         // Determine ports
-        let api_port = self.www.as_ref()
+        let api_port = self
+            .www
+            .as_ref()
             .map(|w| w.port)
             .unwrap_or_else(default_api_port);
-        let web_port = self.www.as_ref()
-            .and_then(|w| w.web_port)
-            .unwrap_or(8011);
+        let web_port = self.www.as_ref().and_then(|w| w.web_port).unwrap_or(8011);
 
         // Database URL
-        let database_url = self.database
+        let database_url = self
+            .database
             .as_ref()
             .and_then(|d| d.url.clone())
-            .unwrap_or_else(|| format!("sqlite:{}?mode=rwc", basedir.join("buildbot.db").display()));
+            .unwrap_or_else(|| {
+                format!("sqlite:{}?mode=rwc", basedir.join("buildbot.db").display())
+            });
 
         // Dispatcher settings
-        let dispatcher_workdir = self.master
+        let dispatcher_workdir = self
+            .master
             .as_ref()
             .and_then(|m| m.dispatcher_workdir.clone())
             .map(PathBuf::from)
             .unwrap_or_else(|| basedir.join("dispatcher_repos"));
 
-        let runner_timeout_secs = self.master
+        let runner_timeout_secs = self
+            .master
             .as_ref()
             .and_then(|m| m.runner_timeout_secs)
             .unwrap_or(300);
@@ -160,7 +181,9 @@ impl YamlConfig {
             database_url,
             web_url,
             build_complete_callback: None,
-            strict_python_deps: self.master.as_ref()
+            strict_python_deps: self
+                .master
+                .as_ref()
                 .and_then(|m| m.strict_python_deps)
                 .unwrap_or(false),
             dispatcher_workdir,

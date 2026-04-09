@@ -26,15 +26,18 @@ pub mod sandbox;
 pub mod script;
 
 use std::collections::HashMap;
-use tokio::sync::RwLock;
 use tokio::sync::mpsc;
+use tokio::sync::RwLock;
 
 pub use job::{Job, JobSource, JobStatus};
+pub use matrix::{MatrixConfig, MatrixInclude};
 pub use repo::{clone_repository, get_latest_revision, scan_ci_directory};
 pub use runner::{Runner, RunnerCapabilities, RunnerType};
+pub use sandbox::{
+    check_docker, execute_container, filter_env, prepare_container_request, ContainerRequest,
+    ContainerResult,
+};
 pub use script::{ImportMode, ScriptInfo, ScriptScanner};
-pub use sandbox::{filter_env, ContainerRequest, ContainerResult, execute_container, check_docker, prepare_container_request};
-pub use matrix::{MatrixConfig, MatrixInclude};
 
 /// In-memory job registry (mirrors DB state for fast access)
 type JobRegistry = HashMap<String, Job>;
@@ -118,7 +121,13 @@ impl DispatcherState {
     }
 
     /// Complete a job and emit completion event
-    pub async fn complete_job(&self, job_id: &str, exit_code: Option<i32>, error: Option<String>, duration_secs: Option<f64>) -> Option<Job> {
+    pub async fn complete_job(
+        &self,
+        job_id: &str,
+        exit_code: Option<i32>,
+        error: Option<String>,
+        duration_secs: Option<f64>,
+    ) -> Option<Job> {
         let mut jobs = self.jobs.write().await;
         if let Some(job) = jobs.get_mut(job_id) {
             let _status = job.status.clone();
@@ -268,8 +277,12 @@ impl DispatcherState {
     /// Register a new runner
     pub async fn register_runner(&self, runner: Runner) {
         let mut runners = self.runners.write().await;
-        tracing::info!("Dispatcher: registered runner '{}' (type={:?}, labels={:?})",
-            runner.name, runner.runner_type, runner.labels);
+        tracing::info!(
+            "Dispatcher: registered runner '{}' (type={:?}, labels={:?})",
+            runner.name,
+            runner.runner_type,
+            runner.labels
+        );
         runners.insert(runner.name.clone(), runner);
     }
 
@@ -306,8 +319,11 @@ impl DispatcherState {
         let mut disconnected = Vec::new();
         for (name, runner) in runners.iter_mut() {
             if runner.is_stale(timeout_secs) {
-                tracing::warn!("Dispatcher: runner '{}' stale (last seen {}s ago), marking offline",
-                    name, timeout_secs);
+                tracing::warn!(
+                    "Dispatcher: runner '{}' stale (last seen {}s ago), marking offline",
+                    name,
+                    timeout_secs
+                );
                 runner.disconnect();
                 disconnected.push(name.clone());
             }

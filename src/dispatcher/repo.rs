@@ -1,8 +1,8 @@
 //! Repository operations - clone, scan, and create jobs
 
+use std::collections::HashMap;
 use std::path::Path;
 use tokio::process::Command;
-use std::collections::HashMap;
 
 use crate::dispatcher::{DispatcherState, JobSource};
 use crate::error::Result;
@@ -16,8 +16,9 @@ pub async fn clone_repository(
 ) -> Result<()> {
     // Ensure parent directory exists
     if let Some(parent) = workdir.parent() {
-        tokio::fs::create_dir_all(parent).await
-            .map_err(|e| crate::error::BuildbotError::Master(format!("Failed to create workdir: {}", e)))?;
+        tokio::fs::create_dir_all(parent).await.map_err(|e| {
+            crate::error::BuildbotError::Master(format!("Failed to create workdir: {}", e))
+        })?;
     }
 
     // Set GIT_TERMINAL_PROMPT=0 to prevent interactive prompts
@@ -29,10 +30,19 @@ pub async fn clone_repository(
         if let Ok(home) = std::env::var("HOME").or_else(|_| std::env::var("USERPROFILE")) {
             let git_creds_path = Path::new(&home).join(".git-credentials");
             let cred_url = make_credential_url(repo_url, creds);
-            tokio::fs::write(&git_creds_path, &cred_url).await
-                .map_err(|e| crate::error::BuildbotError::Master(format!("Failed to write git credentials: {}", e)))?;
+            tokio::fs::write(&git_creds_path, &cred_url)
+                .await
+                .map_err(|e| {
+                    crate::error::BuildbotError::Master(format!(
+                        "Failed to write git credentials: {}",
+                        e
+                    ))
+                })?;
             envs.insert("GIT_CONFIG_COUNT".to_string(), "1".to_string());
-            envs.insert("GIT_CONFIG_KEY_0".to_string(), "credential.helper".to_string());
+            envs.insert(
+                "GIT_CONFIG_KEY_0".to_string(),
+                "credential.helper".to_string(),
+            );
             envs.insert(
                 "GIT_CONFIG_VALUE_0".to_string(),
                 format!("store --file={}", git_creds_path.display()),
@@ -52,11 +62,16 @@ pub async fn clone_repository(
             cmd.env(k, v);
         }
 
-        let output = cmd.output().await
+        let output = cmd
+            .output()
+            .await
             .map_err(|e| crate::error::BuildbotError::Master(format!("git fetch failed: {}", e)))?;
 
         if !output.status.success() {
-            tracing::warn!("git fetch failed: {}", String::from_utf8_lossy(&output.stderr));
+            tracing::warn!(
+                "git fetch failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
         }
 
         // Checkout the branch
@@ -74,20 +89,28 @@ pub async fn clone_repository(
         }
         let _ = cmd.output().await;
     } else {
-        tracing::info!("Cloning repository {} (branch: {}) to {:?}", repo_url, branch, workdir);
+        tracing::info!(
+            "Cloning repository {} (branch: {}) to {:?}",
+            repo_url,
+            branch,
+            workdir
+        );
 
         let mut cmd = Command::new("git");
         cmd.arg("clone")
-           .arg("--branch").arg(branch)
-           .arg("--single-branch")
-           .arg(repo_url)
-           .arg(workdir);
+            .arg("--branch")
+            .arg(branch)
+            .arg("--single-branch")
+            .arg(repo_url)
+            .arg(workdir);
 
         for (k, v) in &envs {
             cmd.env(k, v);
         }
 
-        let output = cmd.output().await
+        let output = cmd
+            .output()
+            .await
             .map_err(|e| crate::error::BuildbotError::Master(format!("git clone failed: {}", e)))?;
 
         if !output.status.success() {
@@ -108,12 +131,21 @@ fn make_credential_url(repo_url: &str, creds: &str) -> String {
         .trim_start_matches("http://")
         .trim_start_matches("git@")
         .trim_start_matches("ssh://")
-        .split('/').next().unwrap_or("github.com")
-        .split(':').next().unwrap_or("github.com");
+        .split('/')
+        .next()
+        .unwrap_or("github.com")
+        .split(':')
+        .next()
+        .unwrap_or("github.com");
 
     if creds.contains(':') {
         let parts: Vec<&str> = creds.splitn(2, ':').collect();
-        format!("https://{}:{}@{}", url_encode(parts[0]), url_encode(parts[1]), host)
+        format!(
+            "https://{}:{}@{}",
+            url_encode(parts[0]),
+            url_encode(parts[1]),
+            host
+        )
     } else {
         format!("https://{}@{}", url_encode(creds), host)
     }
@@ -142,13 +174,17 @@ pub async fn get_latest_revision(workdir: &Path) -> Result<String> {
     cmd.arg("rev-parse").arg("HEAD");
     cmd.current_dir(workdir);
 
-    let output = cmd.output().await
+    let output = cmd
+        .output()
+        .await
         .map_err(|e| crate::error::BuildbotError::Master(format!("git rev-parse failed: {}", e)))?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
     } else {
-        Err(crate::error::BuildbotError::Master("Failed to get revision".to_string()))
+        Err(crate::error::BuildbotError::Master(
+            "Failed to get revision".to_string(),
+        ))
     }
 }
 
@@ -165,20 +201,24 @@ pub async fn scan_ci_directory(
 ) -> Result<usize> {
     // Read requirements.txt if it exists
     let requirements_content = if requirements_path.exists() {
-        tokio::fs::read_to_string(requirements_path).await.unwrap_or_default()
+        tokio::fs::read_to_string(requirements_path)
+            .await
+            .unwrap_or_default()
     } else {
         String::new()
     };
 
     // Scan and enqueue
-    let (enqueued, errors) = dispatcher.scan_and_enqueue(
-        repo_url,
-        branch,
-        ci_dir,
-        &requirements_content,
-        source,
-        extra_labels,
-    ).await;
+    let (enqueued, errors) = dispatcher
+        .scan_and_enqueue(
+            repo_url,
+            branch,
+            ci_dir,
+            &requirements_content,
+            source,
+            extra_labels,
+        )
+        .await;
 
     if !errors.is_empty() {
         tracing::warn!("CI scan errors: {:?}", errors);

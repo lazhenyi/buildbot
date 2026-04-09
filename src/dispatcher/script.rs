@@ -118,7 +118,8 @@ impl ScriptScanner {
                 continue;
             }
 
-            let filename = path.file_name()
+            let filename = path
+                .file_name()
                 .and_then(|n| n.to_str())
                 .unwrap_or("")
                 .to_string();
@@ -181,7 +182,13 @@ impl ScriptScanner {
             if line.starts_with("import ") {
                 // `import a.b.c` → extract "a"
                 let body = line.trim_start_matches("import ").trim();
-                let first = body.split('.').next().unwrap_or(body).split_whitespace().next().unwrap_or(body);
+                let first = body
+                    .split('.')
+                    .next()
+                    .unwrap_or(body)
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or(body);
                 let name = first.split_ascii_whitespace().next().unwrap_or(first);
                 if !name.is_empty() && !seen.contains(name) {
                     seen.insert(name.to_string());
@@ -190,8 +197,13 @@ impl ScriptScanner {
             } else if line.starts_with("from ") {
                 // `from foo import bar` → extract "foo"
                 let body = line.trim_start_matches("from ").trim();
-                let name = body.split_whitespace().next().unwrap_or(body)
-                    .split('.').next().unwrap_or(body);
+                let name = body
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or(body)
+                    .split('.')
+                    .next()
+                    .unwrap_or(body);
                 if !name.is_empty() && !seen.contains(name) {
                     seen.insert(name.to_string());
                     imports.push(name.to_string());
@@ -288,7 +300,7 @@ djangoChannels>=4.0
         assert!(modules.contains("requests"));
         assert!(modules.contains("sqlalchemy"));
         assert!(modules.contains("djangochannels")); // lowercased
-        // comments and flags ignored
+                                                     // comments and flags ignored
         assert!(!modules.contains("other"));
     }
 
@@ -320,7 +332,11 @@ from collections import OrderedDict
         let req = "flask\nrequests\n";
         let scanner = ScriptScanner::new(ImportMode::Strict, req);
 
-        let (valid, unapproved) = scanner.validate_dependencies(&["flask".to_string(), "requests".to_string(), "dangerous".to_string()]);
+        let (valid, unapproved) = scanner.validate_dependencies(&[
+            "flask".to_string(),
+            "requests".to_string(),
+            "dangerous".to_string(),
+        ]);
         assert!(!valid); // dangerous not in requirements
         assert!(!unapproved.is_empty()); // dangerous is unapproved
         assert!(unapproved.contains(&"dangerous".to_string()));

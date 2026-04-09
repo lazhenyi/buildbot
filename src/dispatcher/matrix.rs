@@ -1,7 +1,7 @@
 //! Matrix build support — reads `.ci/matrix.json`, generates Cartesian product of jobs.
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Matrix configuration from `.ci/matrix.json`
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,8 +34,7 @@ pub struct MatrixInclude {
 impl MatrixConfig {
     /// Parse a matrix.json string. Returns None if parsing fails.
     pub fn parse(content: &str) -> Result<Self, String> {
-        serde_json::from_str(content)
-            .map_err(|e| format!("Failed to parse matrix.json: {}", e))
+        serde_json::from_str(content).map_err(|e| format!("Failed to parse matrix.json: {}", e))
     }
 
     /// Generate the Cartesian product of all matrix variables.

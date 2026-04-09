@@ -3,11 +3,11 @@
 use std::sync::Arc;
 use tokio::sync::{broadcast, watch, RwLock};
 
-use crate::db::Database;
-use crate::dispatcher::{DispatcherState, script::ImportMode};
-use crate::error::Result;
-use crate::www::server::{WebServer, SharedApiState, WebServerConfig};
 use super::config::MasterConfig;
+use crate::db::Database;
+use crate::dispatcher::{script::ImportMode, DispatcherState};
+use crate::error::Result;
+use crate::www::server::{SharedApiState, WebServer, WebServerConfig};
 
 /// The main Master service that coordinates the Dispatcher CI system
 pub struct MasterService {
@@ -41,7 +41,10 @@ impl MasterService {
         } else {
             ImportMode::AllowAll
         };
-        let dispatcher = Arc::new(RwLock::new(DispatcherState::new(dispatcher_tx, import_mode)));
+        let dispatcher = Arc::new(RwLock::new(DispatcherState::new(
+            dispatcher_tx,
+            import_mode,
+        )));
         Self {
             config,
             db: Arc::clone(&db),
@@ -60,15 +63,17 @@ impl MasterService {
 
         // Run database migrations
         tracing::info!("Running database migrations...");
-        self.db.run_migrations().await.map_err(|e| {
-            crate::error::BuildbotError::Database(e.to_string())
-        })?;
+        self.db
+            .run_migrations()
+            .await
+            .map_err(|e| crate::error::BuildbotError::Database(e.to_string()))?;
 
         // Create API state for web handlers
-        let api_state: SharedApiState = Arc::new(tokio::sync::RwLock::new(crate::api::handlers::ApiState {
-            db: Arc::clone(&self.db),
-            dispatcher: Arc::clone(&self.dispatcher),
-        }));
+        let api_state: SharedApiState =
+            Arc::new(tokio::sync::RwLock::new(crate::api::handlers::ApiState {
+                db: Arc::clone(&self.db),
+                dispatcher: Arc::clone(&self.dispatcher),
+            }));
 
         // Start web server in background
         tracing::info!("Starting web server on 0.0.0.0:{}...", self.config.web_port);
@@ -81,7 +86,10 @@ impl MasterService {
         let web_server = WebServer::new(web_config);
         let handle = web_server.spawn(Arc::clone(&api_state));
         self.web_server_handle = Some(handle);
-        tracing::info!("Web server started on http://0.0.0.0:{}", self.config.web_port);
+        tracing::info!(
+            "Web server started on http://0.0.0.0:{}",
+            self.config.web_port
+        );
 
         // Start runner cleanup task
         tracing::info!("Starting runner cleanup task...");
@@ -95,7 +103,11 @@ impl MasterService {
                 let dispatcher = dispatcher.read().await;
                 let disconnected = dispatcher.cleanup_stale_runners(runner_timeout).await;
                 if !disconnected.is_empty() {
-                    tracing::info!("Marked {} runners as disconnected: {:?}", disconnected.len(), disconnected);
+                    tracing::info!(
+                        "Marked {} runners as disconnected: {:?}",
+                        disconnected.len(),
+                        disconnected
+                    );
                 }
             }
         });
@@ -103,7 +115,10 @@ impl MasterService {
 
         // Start job completion handler
         tracing::info!("Starting job completion handler...");
-        let mut completion_rx = self.job_completion_rx.take().expect("job completion rx already taken");
+        let mut completion_rx = self
+            .job_completion_rx
+            .take()
+            .expect("job completion rx already taken");
         let db = Arc::clone(&self.db);
         let callback = self.config.build_complete_callback.clone();
         let completion_handle = tokio::spawn(async move {
@@ -116,12 +131,15 @@ impl MasterService {
                 );
 
                 // Update job status in database
-                if let Err(e) = db.update_job_status(
-                    &event.job_id,
-                    &event.status.to_string(),
-                    event.exit_code,
-                    event.error_message.clone(),
-                ).await {
+                if let Err(e) = db
+                    .update_job_status(
+                        &event.job_id,
+                        &event.status.to_string(),
+                        event.exit_code,
+                        event.error_message.clone(),
+                    )
+                    .await
+                {
                     tracing::error!("Failed to update job status: {}", e);
                 }
 

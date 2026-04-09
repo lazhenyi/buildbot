@@ -21,11 +21,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Schedulers::Name).string().not_null())
-                    .col(
-                        ColumnDef::new(Schedulers::NameHash)
-                            .string()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(Schedulers::NameHash).string().not_null())
                     .col(
                         ColumnDef::new(Schedulers::Enabled)
                             .integer()
@@ -99,16 +95,8 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(ChangeSources::Name)
-                            .string()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(ChangeSources::NameHash)
-                            .string()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(ChangeSources::Name).string().not_null())
+                    .col(ColumnDef::new(ChangeSources::NameHash).string().not_null())
                     .to_owned(),
             )
             .await?;
@@ -150,17 +138,9 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(Codebases::Projectid)
-                            .integer()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(Codebases::Projectid).integer().not_null())
                     .col(ColumnDef::new(Codebases::Name).string().not_null())
-                    .col(
-                        ColumnDef::new(Codebases::NameHash)
-                            .string()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(Codebases::NameHash).string().not_null())
                     .col(ColumnDef::new(Codebases::Slug).string().not_null())
                     .to_owned(),
             )
@@ -182,21 +162,13 @@ impl MigrationTrait for Migration {
                             .integer()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(CodebaseBranches::Name)
-                            .string()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(CodebaseBranches::Name).string().not_null())
                     .col(
                         ColumnDef::new(CodebaseBranches::NameHash)
                             .string()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(CodebaseBranches::Commitid)
-                            .integer()
-                            .null(),
-                    )
+                    .col(ColumnDef::new(CodebaseBranches::Commitid).integer().null())
                     .col(
                         ColumnDef::new(CodebaseBranches::LastTimestamp)
                             .integer()
@@ -222,27 +194,15 @@ impl MigrationTrait for Migration {
                             .integer()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(CodebaseCommits::Author)
-                            .text()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(CodebaseCommits::Author).text().not_null())
                     .col(ColumnDef::new(CodebaseCommits::Committer).text().null())
-                    .col(
-                        ColumnDef::new(CodebaseCommits::Comments)
-                            .text()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(CodebaseCommits::Comments).text().not_null())
                     .col(
                         ColumnDef::new(CodebaseCommits::WhenTimestamp)
                             .integer()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(CodebaseCommits::Revision)
-                            .text()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(CodebaseCommits::Revision).text().not_null())
                     .col(
                         ColumnDef::new(CodebaseCommits::ParentCommitid)
                             .integer()
@@ -265,11 +225,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Objects::Name).string().not_null())
-                    .col(
-                        ColumnDef::new(Objects::ClassName)
-                            .string()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(Objects::ClassName).string().not_null())
                     .to_owned(),
             )
             .await?;
@@ -285,21 +241,9 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(ObjectState::Objectid)
-                            .integer()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(ObjectState::Name)
-                            .string()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(ObjectState::ValueJson)
-                            .text()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(ObjectState::Objectid).integer().not_null())
+                    .col(ColumnDef::new(ObjectState::Name).string().not_null())
+                    .col(ColumnDef::new(ObjectState::ValueJson).text().not_null())
                     .to_owned(),
             )
             .await?;
@@ -317,11 +261,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Tags::Name).string().not_null())
-                    .col(
-                        ColumnDef::new(Tags::NameHash)
-                            .string()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(Tags::NameHash).string().not_null())
                     .to_owned(),
             )
             .await?;
@@ -337,11 +277,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(BuilderTags::Builderid)
-                            .integer()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(BuilderTags::Builderid).integer().not_null())
                     .col(ColumnDef::new(BuilderTags::Tagid).integer().not_null())
                     .to_owned(),
             )
@@ -359,21 +295,9 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(Users::Identifier)
-                            .text()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(Users::BbUsername)
-                            .text()
-                            .null(),
-                    )
-                    .col(
-                        ColumnDef::new(Users::BbPassword)
-                            .text()
-                            .null(),
-                    )
+                    .col(ColumnDef::new(Users::Identifier).text().not_null())
+                    .col(ColumnDef::new(Users::BbUsername).text().null())
+                    .col(ColumnDef::new(Users::BbPassword).text().null())
                     .to_owned(),
             )
             .await?;
@@ -390,16 +314,8 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(UsersInfo::Uid).integer().not_null())
-                    .col(
-                        ColumnDef::new(UsersInfo::AttrType)
-                            .text()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(UsersInfo::AttrData)
-                            .text()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(UsersInfo::AttrType).text().not_null())
+                    .col(ColumnDef::new(UsersInfo::AttrData).text().not_null())
                     .to_owned(),
             )
             .await?;
@@ -421,37 +337,13 @@ impl MigrationTrait for Migration {
                             .integer()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(TestResultSets::Buildid)
-                            .integer()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(TestResultSets::Stepid)
-                            .integer()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(TestResultSets::Buildid).integer().not_null())
+                    .col(ColumnDef::new(TestResultSets::Stepid).integer().not_null())
                     .col(ColumnDef::new(TestResultSets::Description).text().null())
-                    .col(
-                        ColumnDef::new(TestResultSets::Category)
-                            .text()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(TestResultSets::ValueUnit)
-                            .text()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(TestResultSets::TestsPassed)
-                            .integer()
-                            .null(),
-                    )
-                    .col(
-                        ColumnDef::new(TestResultSets::TestsFailed)
-                            .integer()
-                            .null(),
-                    )
+                    .col(ColumnDef::new(TestResultSets::Category).text().not_null())
+                    .col(ColumnDef::new(TestResultSets::ValueUnit).text().not_null())
+                    .col(ColumnDef::new(TestResultSets::TestsPassed).integer().null())
+                    .col(ColumnDef::new(TestResultSets::TestsFailed).integer().null())
                     .col(
                         ColumnDef::new(TestResultSets::Complete)
                             .integer()
@@ -473,11 +365,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(TestNames::Builderid)
-                            .integer()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(TestNames::Builderid).integer().not_null())
                     .col(ColumnDef::new(TestNames::Name).string().not_null())
                     .to_owned(),
             )
@@ -515,32 +403,16 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(TestResults::Builderid)
-                            .integer()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(TestResults::Builderid).integer().not_null())
                     .col(
                         ColumnDef::new(TestResults::TestResultSetid)
                             .integer()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(TestResults::TestNameid)
-                            .integer()
-                            .null(),
-                    )
-                    .col(
-                        ColumnDef::new(TestResults::TestCodePathid)
-                            .integer()
-                            .null(),
-                    )
+                    .col(ColumnDef::new(TestResults::TestNameid).integer().null())
+                    .col(ColumnDef::new(TestResults::TestCodePathid).integer().null())
                     .col(ColumnDef::new(TestResults::Line).integer().null())
-                    .col(
-                        ColumnDef::new(TestResults::DurationNs)
-                            .integer()
-                            .null(),
-                    )
+                    .col(ColumnDef::new(TestResults::DurationNs).integer().null())
                     .col(ColumnDef::new(TestResults::Value).text().not_null())
                     .to_owned(),
             )
@@ -560,54 +432,46 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(TestNames::Table).to_owned())
             .await?;
         manager
-            .drop_table(
-                Table::drop().table(TestResultSets::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(TestResultSets::Table).to_owned())
             .await?;
         manager
             .drop_table(Table::drop().table(UsersInfo::Table).to_owned())
             .await?;
-        manager.drop_table(Table::drop().table(Users::Table).to_owned()).await?;
+        manager
+            .drop_table(Table::drop().table(Users::Table).to_owned())
+            .await?;
         manager
             .drop_table(Table::drop().table(BuilderTags::Table).to_owned())
             .await?;
-        manager.drop_table(Table::drop().table(Tags::Table).to_owned()).await?;
+        manager
+            .drop_table(Table::drop().table(Tags::Table).to_owned())
+            .await?;
         manager
             .drop_table(Table::drop().table(ObjectState::Table).to_owned())
             .await?;
-        manager.drop_table(Table::drop().table(Objects::Table).to_owned()).await?;
         manager
-            .drop_table(
-                Table::drop().table(CodebaseCommits::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(Objects::Table).to_owned())
             .await?;
         manager
-            .drop_table(
-                Table::drop().table(CodebaseBranches::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(CodebaseCommits::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(CodebaseBranches::Table).to_owned())
             .await?;
         manager
             .drop_table(Table::drop().table(Codebases::Table).to_owned())
             .await?;
         manager
-            .drop_table(
-                Table::drop().table(ChangeSourceMasters::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(ChangeSourceMasters::Table).to_owned())
             .await?;
         manager
-            .drop_table(
-                Table::drop().table(ChangeSources::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(ChangeSources::Table).to_owned())
             .await?;
         manager
-            .drop_table(
-                Table::drop().table(SchedulerChanges::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(SchedulerChanges::Table).to_owned())
             .await?;
         manager
-            .drop_table(
-                Table::drop().table(SchedulerMasters::Table).to_owned(),
-            )
+            .drop_table(Table::drop().table(SchedulerMasters::Table).to_owned())
             .await?;
         manager
             .drop_table(Table::drop().table(Schedulers::Table).to_owned())

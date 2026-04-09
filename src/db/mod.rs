@@ -5,19 +5,16 @@
 pub mod entities;
 pub mod migrations;
 
-
-use sea_orm::{
-    ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait,
-    Database as SeaDatabase, DatabaseConnection, DbErr, EntityTrait,
-    QueryFilter, QueryOrder, QuerySelect, Statement,
-};
-use sea_orm_migration::{SchemaManager, MigrationTrait};
 use chrono::Utc;
+use sea_orm::{
+    ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait, Database as SeaDatabase,
+    DatabaseConnection, DbErr, EntityTrait, QueryFilter, QueryOrder, QuerySelect, Statement,
+};
+use sea_orm_migration::{MigrationTrait, SchemaManager};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub use entities::{
-    builds, builders, build_requests, build_sets, source_stamps, changes,
-    steps, logs, log_chunks,
+    build_requests, build_sets, builders, builds, changes, log_chunks, logs, source_stamps, steps,
 };
 #[derive(Clone)]
 pub struct Database {
@@ -44,11 +41,8 @@ impl Database {
 
     /// Check if the database connection is alive
     pub async fn ping(&self) -> Result<bool, DbErr> {
-        let stmt = Statement::from_sql_and_values(
-            sea_orm::DatabaseBackend::Sqlite,
-            "SELECT 1",
-            vec![],
-        );
+        let stmt =
+            Statement::from_sql_and_values(sea_orm::DatabaseBackend::Sqlite, "SELECT 1", vec![]);
         let _result = self.conn.query_one(stmt).await?;
         Ok(true)
     }
@@ -61,9 +55,18 @@ impl Database {
 
         // Run each migration individually
         let migrations: Vec<(&str, Box<dyn MigrationTrait>)> = vec![
-            ("m20250101_init", Box::new(migrations::m20250101_init::Migration) as Box<dyn MigrationTrait>),
-            ("m20250102_secondary", Box::new(migrations::m20250102_secondary::Migration)),
-            ("m20250103_dispatcher", Box::new(migrations::m20250103_dispatcher::Migration)),
+            (
+                "m20250101_init",
+                Box::new(migrations::m20250101_init::Migration) as Box<dyn MigrationTrait>,
+            ),
+            (
+                "m20250102_secondary",
+                Box::new(migrations::m20250102_secondary::Migration),
+            ),
+            (
+                "m20250103_dispatcher",
+                Box::new(migrations::m20250103_dispatcher::Migration),
+            ),
         ];
 
         for (name, migration) in migrations {
@@ -79,7 +82,6 @@ impl Database {
         Ok(())
     }
 }
-
 
 pub use entities::*;
 
@@ -220,12 +222,7 @@ impl Database {
     // ─────────────────────────────────────────────────────────────
 
     /// Create a step record and return its assigned ID
-    pub async fn create_step(
-        &self,
-        build_id: i32,
-        number: i32,
-        name: &str,
-    ) -> Result<i32, DbErr> {
+    pub async fn create_step(&self, build_id: i32, number: i32, name: &str) -> Result<i32, DbErr> {
         let active = steps::ActiveModel {
             buildid: ActiveValue::Set(build_id),
             number: ActiveValue::Set(number),
@@ -286,12 +283,7 @@ impl Database {
     // ─────────────────────────────────────────────────────────────
 
     /// Create a log record and return its assigned ID
-    pub async fn create_log(
-        &self,
-        step_id: i32,
-        name: &str,
-        log_type: &str,
-    ) -> Result<i32, DbErr> {
+    pub async fn create_log(&self, step_id: i32, name: &str, log_type: &str) -> Result<i32, DbErr> {
         let slug = name.replace([' ', '/', '\\', '.'], "_").to_lowercase();
         let active = logs::ActiveModel {
             stepid: ActiveValue::Set(step_id),
@@ -307,11 +299,7 @@ impl Database {
     }
 
     /// Append a log chunk and update num_lines
-    pub async fn append_log_chunk(
-        &self,
-        log_id: i32,
-        content: &str,
-    ) -> Result<(), DbErr> {
+    pub async fn append_log_chunk(&self, log_id: i32, content: &str) -> Result<(), DbErr> {
         let lines: Vec<&str> = content.lines().collect();
         let num_lines = lines.len() as i32;
 
@@ -438,11 +426,7 @@ impl Database {
     }
 
     /// Update build request result
-    pub async fn finish_build_request(
-        &self,
-        br_id: i32,
-        results: i32,
-    ) -> Result<(), DbErr> {
+    pub async fn finish_build_request(&self, br_id: i32, results: i32) -> Result<(), DbErr> {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -537,10 +521,7 @@ impl Database {
     }
 
     /// Find buildset by ID
-    pub async fn find_buildset_by_id(
-        &self,
-        id: i32,
-    ) -> Result<Option<build_sets::Model>, DbErr> {
+    pub async fn find_buildset_by_id(&self, id: i32) -> Result<Option<build_sets::Model>, DbErr> {
         build_sets::Entity::find_by_id(id).one(&self.conn).await
     }
 
@@ -560,16 +541,13 @@ impl Database {
             .unwrap()
             .as_secs() as i64;
 
-        let ss_hash = format!(
-            "{:x}",
-            {
-                use std::collections::hash_map::DefaultHasher;
-                use std::hash::{Hash, Hasher};
-                let mut h = DefaultHasher::new();
-                (repository, &branch, &revision).hash(&mut h);
-                h.finish()
-            }
-        );
+        let ss_hash = format!("{:x}", {
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            let mut h = DefaultHasher::new();
+            (repository, &branch, &revision).hash(&mut h);
+            h.finish()
+        });
 
         let active = source_stamps::ActiveModel {
             ss_hash: ActiveValue::Set(ss_hash),
@@ -613,8 +591,8 @@ impl Database {
 // Dispatcher database methods
 // ──────────────────────────────────────────────────────────────────────────────────
 
-pub use entities::dispatcher_jobs;
 use crate::dispatcher::{Job, JobStatus};
+pub use entities::dispatcher_jobs;
 
 /// Get current Unix timestamp
 fn current_timestamp() -> i64 {
@@ -623,10 +601,7 @@ fn current_timestamp() -> i64 {
 
 impl Database {
     /// Insert a new dispatcher job into database
-    pub async fn create_dispatcher_job(
-        &self,
-        job: &Job,
-    ) -> Result<i32, DbErr> {
+    pub async fn create_dispatcher_job(&self, job: &Job) -> Result<i32, DbErr> {
         let job_active_model = dispatcher_jobs::ActiveModel {
             id: ActiveValue::NotSet,
             job_id: ActiveValue::set(job.id.clone()),
@@ -658,11 +633,7 @@ impl Database {
     }
 
     /// Update a dispatcher job in database
-    pub async fn update_dispatcher_job(
-        &self,
-        _db_id: i32,
-        job: &Job,
-    ) -> Result<(), DbErr> {
+    pub async fn update_dispatcher_job(&self, _db_id: i32, job: &Job) -> Result<(), DbErr> {
         let job_search = dispatcher_jobs::Entity::find()
             .filter(dispatcher_jobs::Column::JobId.eq(&job.id))
             .one(&self.conn)
@@ -749,7 +720,9 @@ impl Database {
             name: ActiveValue::set(runner.name.clone()),
             runner_type: ActiveValue::set(format!("{:?}", runner.runner_type)),
             labels: ActiveValue::set(serde_json::to_string(&runner.labels).unwrap()),
-            capabilities_json: ActiveValue::set(serde_json::to_string(&runner.capabilities).unwrap()),
+            capabilities_json: ActiveValue::set(
+                serde_json::to_string(&runner.capabilities).unwrap(),
+            ),
             last_heartbeat_at: ActiveValue::set(runner.last_heartbeat_at.timestamp()),
             registered_at: ActiveValue::set(runner.registered_at.timestamp()),
             active_jobs_json: ActiveValue::set(serde_json::to_string(&runner.active_jobs).unwrap()),
@@ -765,10 +738,7 @@ impl Database {
     }
 
     /// Update runner heartbeat and state
-    pub async fn update_dispatcher_runner_heartbeat(
-        &self,
-        name: &str,
-    ) -> Result<(), DbErr> {
+    pub async fn update_dispatcher_runner_heartbeat(&self, name: &str) -> Result<(), DbErr> {
         let runner_search = dispatcher_runners::Entity::find()
             .filter(dispatcher_runners::Column::Name.eq(name))
             .one(&self.conn)
@@ -785,10 +755,7 @@ impl Database {
     }
 
     /// Mark runner disconnected
-    pub async fn mark_dispatcher_runner_disconnected(
-        &self,
-        name: &str,
-    ) -> Result<(), DbErr> {
+    pub async fn mark_dispatcher_runner_disconnected(&self, name: &str) -> Result<(), DbErr> {
         let runner_search = dispatcher_runners::Entity::find()
             .filter(dispatcher_runners::Column::Name.eq(name))
             .one(&self.conn)
@@ -805,13 +772,10 @@ impl Database {
     }
 
     /// List all dispatcher runners
-    pub async fn list_dispatcher_runners(
-        &self,
-    ) -> Result<Vec<dispatcher_runners::Model>, DbErr> {
+    pub async fn list_dispatcher_runners(&self) -> Result<Vec<dispatcher_runners::Model>, DbErr> {
         dispatcher_runners::Entity::find()
             .order_by_desc(dispatcher_runners::Column::LastHeartbeatAt)
             .all(&self.conn)
             .await
     }
 }
-

@@ -4,8 +4,8 @@
 
 use buildbot::config::loader::{ConfigLoader, YamlConfig};
 use buildbot::db::Database;
-use buildbot::dispatcher::{DispatcherState, Job, JobStatus, JobSource, Runner, RunnerType};
 use buildbot::dispatcher::script::ImportMode;
+use buildbot::dispatcher::{DispatcherState, Job, JobSource, JobStatus, Runner, RunnerType};
 use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -50,8 +50,14 @@ async fn test_dispatcher_job_status_update() {
     let db = Arc::new(Database::new(&db_url).await.expect("create temp DB"));
     db.run_migrations().await.expect("run migrations");
 
-    let result = db.update_job_status("test-job-001", "Success", Some(0), None).await;
-    assert!(result.is_ok(), "update_job_status should succeed: {:?}", result);
+    let result = db
+        .update_job_status("test-job-001", "Success", Some(0), None)
+        .await;
+    assert!(
+        result.is_ok(),
+        "update_job_status should succeed: {:?}",
+        result
+    );
 
     let _ = std::fs::remove_file(&db_path);
 }
@@ -68,7 +74,10 @@ fn make_test_job(id: &str, name: &str, labels: Vec<String>, status: JobStatus) -
         sort_key: 1,
         status,
         labels,
-        source: JobSource::Webhook { repository_id: 0, branch: "main".to_string() },
+        source: JobSource::Webhook {
+            repository_id: 0,
+            branch: "main".to_string(),
+        },
         repository_url: "https://github.com/test/repo".to_string(),
         branch: "main".to_string(),
         revision: Some("abc123".to_string()),
@@ -93,7 +102,12 @@ fn make_dispatcher() -> DispatcherState {
 #[tokio::test]
 async fn test_dispatcher_enqueuing_job() {
     let dispatcher = make_dispatcher();
-    let job = make_test_job("job-enqueue-1", "enqueue-test", vec!["test".to_string()], JobStatus::Pending);
+    let job = make_test_job(
+        "job-enqueue-1",
+        "enqueue-test",
+        vec!["test".to_string()],
+        JobStatus::Pending,
+    );
 
     dispatcher.enqueue(job).await;
     let jobs = dispatcher.list_jobs(None).await;
@@ -114,8 +128,13 @@ async fn test_dispatcher_poll_job_assigns_to_runner() {
 
     dispatcher.enqueue(job).await;
 
-    let polled = dispatcher.poll_job("linux-runner-1", &["linux".to_string()]).await;
-    assert!(polled.is_some(), "Should return a pending job with matching labels");
+    let polled = dispatcher
+        .poll_job("linux-runner-1", &["linux".to_string()])
+        .await;
+    assert!(
+        polled.is_some(),
+        "Should return a pending job with matching labels"
+    );
 
     let polled_job = polled.unwrap();
     assert_eq!(polled_job.id, "job-poll-1");
@@ -134,8 +153,13 @@ async fn test_dispatcher_poll_job_no_matching_labels() {
 
     dispatcher.enqueue(job).await;
 
-    let polled = dispatcher.poll_job("linux-runner", &["linux".to_string()]).await;
-    assert!(polled.is_none(), "Should not return job with non-matching labels");
+    let polled = dispatcher
+        .poll_job("linux-runner", &["linux".to_string()])
+        .await;
+    assert!(
+        polled.is_none(),
+        "Should not return job with non-matching labels"
+    );
 }
 
 #[tokio::test]
@@ -150,7 +174,9 @@ async fn test_dispatcher_complete_job_updates_status() {
 
     dispatcher.enqueue(job).await;
 
-    let completed = dispatcher.complete_job("job-complete-1", Some(0), None, Some(30.0)).await;
+    let completed = dispatcher
+        .complete_job("job-complete-1", Some(0), None, Some(30.0))
+        .await;
     assert!(completed.is_some());
 
     let jobs = dispatcher.list_jobs(None).await;
@@ -229,11 +255,7 @@ async fn test_runner_heartbeat_not_found() {
 #[tokio::test]
 async fn test_runner_unregistration() {
     let dispatcher = make_dispatcher();
-    let runner = Runner::new(
-        "unreg-runner".to_string(),
-        RunnerType::Persistent,
-        vec![],
-    );
+    let runner = Runner::new("unreg-runner".to_string(), RunnerType::Persistent, vec![]);
     dispatcher.register_runner(runner).await;
     assert_eq!(dispatcher.list_runners().await.len(), 1);
 
