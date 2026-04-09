@@ -1,0 +1,21 @@
+# Auto-detect text files
+* text=auto
+
+# Rust source
+*.rs text eol=lf
+
+# Scripts
+*.sh text eol=lf
+
+# Dockerfile
+Dockerfile text eol=lf
+
+# TOML/YAML/JSON
+*.toml text
+*.yml text
+*.yaml text
+*.json text
+
+# Binary files
+*.db binary
+*.exe binary

@@ -1,0 +1,39 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# IDE
+.idea/
+.vscode/
+
+# Build artifacts
+target/
+
+# Local files
+*.db
+.env
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.tmp
+*.bak
+
+# Docker files (to avoid COPY conflict)
+Dockerfile*
+.dockerignore
+
+# Buildbot tools (runtime data)
+buildbot-tools/

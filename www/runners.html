@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runners - Buildbot Dispatcher</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <h1 class="site-title">Buildbot Dispatcher</h1>
+                <nav class="site-nav">
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/jobs">Jobs</a>
+                    <a href="/runners" class="active">Runners</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h2>Runners</h2>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="showRegisterModal()">Register Runner</button>
+                <button class="btn btn-primary" onclick="loadRunners()">Refresh</button>
+            </div>
+        </div>
+
+        <section class="panel">
+            <div id="runners-loading" class="loading">Loading...</div>
+            <table class="data-table" id="runners-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Labels</th>
+                        <th>Status</th>
+                        <th>Architecture</th>
+                        <th>Last Seen</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="runners-body"></tbody>
+            </table>
+            <div id="runners-empty" class="empty-state" style="display:none">No runners registered.</div>
+        </section>
+
+        <section class="panel">
+            <h3>Runner API Demo</h3>
+            <p>This section demonstrates how runners interact with the API.</p>
+            <div class="api-demo">
+                <h4>Poll for Jobs</h4>
+                <div class="form-group">
+                    <label>Runner ID:</label>
+                    <input type="text" id="poll-runner-id" placeholder="runner-uuid">
+                </div>
+                <div class="form-group">
+                    <label>Labels:</label>
+                    <input type="text" id="poll-labels" placeholder="ubuntu, docker">
+                </div>
+                <button class="btn btn-primary" onclick="pollJobs()">Poll Jobs</button>
+                <pre class="code-block" id="poll-result">Results will appear here...</pre>
+            </div>
+        </section>
+    </main>
+
+    <div id="register-modal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Register Runner</h3>
+                <button class="modal-close" onclick="closeRegisterModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Runner Name:</label>
+                    <input type="text" id="runner-name" placeholder="my-runner">
+                </div>
+                <div class="form-group">
+                    <label>Labels (comma-separated):</label>
+                    <input type="text" id="runner-labels" placeholder="ubuntu, docker, linux">
+                </div>
+                <div class="form-group">
+                    <label>Architecture:</label>
+                    <input type="text" id="runner-arch" placeholder="x86_64-unknown-linux-gnu">
+                </div>
+                <div id="register-result" class="result-box" style="display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="registerRunner()">Register</button>
+                <button class="btn btn-secondary" onclick="closeRegisterModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>Buildbot Dispatcher &mdash; Rust CI System</p>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRunners();
+        });
+    </script>
+</body>
+</html>

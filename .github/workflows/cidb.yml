@@ -1,0 +1,60 @@
+name: CI (Database)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sqlite:
+    name: SQLite Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build with SQLite
+        run: cargo build --features sqlite
+      - name: Run tests with SQLite
+        run: cargo test --features sqlite -- --test-threads=4
+
+  postgres:
+    name: PostgreSQL Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: buildbot
+          POSTGRES_PASSWORD: buildbot
+          POSTGRES_DB: buildbot_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run tests with PostgreSQL
+        env:
+          DATABASE_URL: postgres://buildbot:buildbot@localhost:5432/buildbot_test
+        run: cargo test --features postgres -- --test-threads=4
+
+  # MSRV (Minimum Supported Rust Version) check
+  msrv:
+    name: MSRV Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # pinned to Rust 1.70 which is the MSRV
+      - uses: dtolnay/rust-toolchain@1.70
+      - name: Check MSRV build
+        run: cargo check

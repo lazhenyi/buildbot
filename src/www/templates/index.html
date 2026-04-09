@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buildbot - CI System</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.failure { background: #f8d7da; color: #721c24; }
+        .status.running { background: #cce5ff; color: #004085; }
+        .status.pending { background: #fff3cd; color: #856404; }
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Buildbot</h1>
+        <nav class="nav">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/builders">Builders</a>
+            <a href="/workers">Workers</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="card">
+            <h2>Welcome to Buildbot</h2>
+            <p>A modern CI/CD system written in Rust.</p>
+            <p>Current Version: <span id="version">Loading...</span></p>
+        </div>
+
+        <div class="card">
+            <h2>Quick Status</h2>
+            <p>Builders: <span class="status running" id="builder-count">0</span></p>
+            <p>Workers: <span class="status success" id="worker-count">0</span></p>
+            <p>Running Builds: <span class="status pending" id="build-count">0</span></p>
+        </div>
+    </div>
+
+    <div class="footer">
+        Buildbot CI System
+    </div>
+
+    <script>
+        async function loadStatus() {
+            try {
+                const res = await fetch('/api/v2/health');
+                const data = await res.json();
+                document.getElementById('version').textContent = data.version || 'unknown';
+            } catch (e) {
+                document.getElementById('version').textContent = 'Error loading';
+            }
+        }
+        loadStatus();
+    </script>
+</body>
+</html>

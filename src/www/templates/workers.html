@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workers - Buildbot</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+        }
+        .header h1 { margin: 0; font-size: 1.5rem; }
+        .nav { display: flex; gap: 1rem; margin-top: 1rem; }
+        .nav a { color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; }
+        .nav a:hover { background: rgba(255,255,255,0.1); }
+        .content { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+        .card { background: white; border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .worker-name { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+        .status.connected { background: #d4edda; color: #155724; }
+        .status.disconnected { background: #f8d7da; color: #721c24; }
+        .status.building { background: #cce5ff; color: #004085; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Workers</h1>
+        <nav class="nav">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/builders">Builders</a>
+            <a href="/workers">Workers</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="grid" id="workers-grid">
+            <div class="card">Loading workers...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadWorkers() {
+            try {
+                const res = await fetch('/api/v2/workers');
+                const data = await res.json();
+                const grid = document.getElementById('workers-grid');
+                if (data.workers && data.workers.length > 0) {
+                    grid.innerHTML = data.workers.map(w => `
+                        <div class="card">
+                            <div class="worker-name">${w.name || 'Worker ' + w.id}</div>
+                            <span class="status disconnected">Disconnected</span>
+                        </div>
+                    `).join('');
+                } else {
+                    grid.innerHTML = '<div class="card">No workers configured</div>';
+                }
+            } catch (e) {
+                document.getElementById('workers-grid').innerHTML = '<div class="card">Error loading workers</div>';
+            }
+        }
+        loadWorkers();
+    </script>
+</body>
+</html>

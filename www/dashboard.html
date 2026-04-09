@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Buildbot Dispatcher</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <h1 class="site-title">Buildbot Dispatcher</h1>
+                <nav class="site-nav">
+                    <a href="/dashboard" class="active">Dashboard</a>
+                    <a href="/jobs">Jobs</a>
+                    <a href="/runners">Runners</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h2>Dispatcher Dashboard</h2>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="refreshDashboard()">Refresh</button>
+            </div>
+        </div>
+
+        <section id="dispatcher-info" class="panel">
+            <h3>Dispatcher Information</h3>
+            <div id="dispatcher-loading" class="loading">Loading...</div>
+            <div id="dispatcher-data"></div>
+        </section>
+
+        <div class="dashboard-grid">
+            <section class="panel">
+                <h3>Recent Jobs</h3>
+                <div id="recent-jobs-loading" class="loading">Loading...</div>
+                <table class="data-table" id="recent-jobs-table" style="display:none">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Runner</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-jobs-body"></tbody>
+                </table>
+            </section>
+
+            <section class="panel">
+                <h3>Active Runners</h3>
+                <div id="runners-loading" class="loading">Loading...</div>
+                <table class="data-table" id="runners-table" style="display:none">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Labels</th>
+                            <th>Status</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="runners-body"></tbody>
+                </table>
+            </section>
+        </div>
+
+        <section class="panel">
+            <h3>Projects</h3>
+            <div id="projects-loading" class="loading">Loading...</div>
+            <table class="data-table" id="projects-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Slug</th>
+                        <th>Repository</th>
+                    </tr>
+                </thead>
+                <tbody id="projects-body"></tbody>
+            </table>
+        </section>
+
+        <section class="panel">
+            <h3>Builders</h3>
+            <div id="builders-loading" class="loading">Loading...</div>
+            <table class="data-table" id="builders-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Project</th>
+                    </tr>
+                </thead>
+                <tbody id="builders-body"></tbody>
+            </table>
+        </section>
+
+        <section class="panel">
+            <h3>Recent Builds</h3>
+            <div id="builds-loading" class="loading">Loading...</div>
+            <table class="data-table" id="builds-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Number</th>
+                        <th>Builder</th>
+                        <th>Status</th>
+                        <th>Started</th>
+                        <th>Finished</th>
+                    </tr>
+                </thead>
+                <tbody id="builds-body"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>Buildbot Dispatcher &mdash; Rust CI System</p>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>

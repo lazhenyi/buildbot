@@ -1,0 +1,790 @@
+//! Secondary tables - schedulers, codebases, users, test results, etc.
+
+use sea_orm_migration::prelude::*;
+
+#[derive(DeriveMigrationName)]
+pub struct Migration;
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        // Scheduler tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(Schedulers::Table)
+                    .col(
+                        ColumnDef::new(Schedulers::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Schedulers::Name).string().not_null())
+                    .col(
+                        ColumnDef::new(Schedulers::NameHash)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Schedulers::Enabled)
+                            .integer()
+                            .not_null()
+                            .default(1),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(SchedulerMasters::Table)
+                    .col(
+                        ColumnDef::new(SchedulerMasters::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(SchedulerMasters::Schedulerid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(SchedulerMasters::Masterid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(SchedulerChanges::Table)
+                    .col(
+                        ColumnDef::new(SchedulerChanges::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(SchedulerChanges::Schedulerid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(SchedulerChanges::Changeid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(SchedulerChanges::Important).integer().null())
+                    .to_owned(),
+            )
+            .await?;
+
+        // ChangeSource tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(ChangeSources::Table)
+                    .col(
+                        ColumnDef::new(ChangeSources::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeSources::Name)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeSources::NameHash)
+                            .string()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ChangeSourceMasters::Table)
+                    .col(
+                        ColumnDef::new(ChangeSourceMasters::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeSourceMasters::Changesourceid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeSourceMasters::Masterid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        // Codebase tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(Codebases::Table)
+                    .col(
+                        ColumnDef::new(Codebases::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Codebases::Projectid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Codebases::Name).string().not_null())
+                    .col(
+                        ColumnDef::new(Codebases::NameHash)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Codebases::Slug).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(CodebaseBranches::Table)
+                    .col(
+                        ColumnDef::new(CodebaseBranches::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseBranches::Codebaseid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseBranches::Name)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseBranches::NameHash)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseBranches::Commitid)
+                            .integer()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseBranches::LastTimestamp)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(CodebaseCommits::Table)
+                    .col(
+                        ColumnDef::new(CodebaseCommits::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseCommits::Codebaseid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseCommits::Author)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(CodebaseCommits::Committer).text().null())
+                    .col(
+                        ColumnDef::new(CodebaseCommits::Comments)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseCommits::WhenTimestamp)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseCommits::Revision)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(CodebaseCommits::ParentCommitid)
+                            .integer()
+                            .null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        // Object state tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(Objects::Table)
+                    .col(
+                        ColumnDef::new(Objects::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Objects::Name).string().not_null())
+                    .col(
+                        ColumnDef::new(Objects::ClassName)
+                            .string()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ObjectState::Table)
+                    .col(
+                        ColumnDef::new(ObjectState::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ObjectState::Objectid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ObjectState::Name)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ObjectState::ValueJson)
+                            .text()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        // Tag tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(Tags::Table)
+                    .col(
+                        ColumnDef::new(Tags::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Tags::Name).string().not_null())
+                    .col(
+                        ColumnDef::new(Tags::NameHash)
+                            .string()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuilderTags::Table)
+                    .col(
+                        ColumnDef::new(BuilderTags::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuilderTags::Builderid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(BuilderTags::Tagid).integer().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        // User tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(Users::Table)
+                    .col(
+                        ColumnDef::new(Users::Uid)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Users::Identifier)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Users::BbUsername)
+                            .text()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(Users::BbPassword)
+                            .text()
+                            .null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(UsersInfo::Table)
+                    .col(
+                        ColumnDef::new(UsersInfo::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(UsersInfo::Uid).integer().not_null())
+                    .col(
+                        ColumnDef::new(UsersInfo::AttrType)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(UsersInfo::AttrData)
+                            .text()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        // Test result tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(TestResultSets::Table)
+                    .col(
+                        ColumnDef::new(TestResultSets::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResultSets::Builderid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResultSets::Buildid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResultSets::Stepid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(TestResultSets::Description).text().null())
+                    .col(
+                        ColumnDef::new(TestResultSets::Category)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResultSets::ValueUnit)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResultSets::TestsPassed)
+                            .integer()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResultSets::TestsFailed)
+                            .integer()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResultSets::Complete)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(TestNames::Table)
+                    .col(
+                        ColumnDef::new(TestNames::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(TestNames::Builderid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(TestNames::Name).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(TestCodePaths::Table)
+                    .col(
+                        ColumnDef::new(TestCodePaths::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(TestCodePaths::Builderid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(TestCodePaths::Path).text().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(TestResults::Table)
+                    .col(
+                        ColumnDef::new(TestResults::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResults::Builderid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResults::TestResultSetid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResults::TestNameid)
+                            .integer()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(TestResults::TestCodePathid)
+                            .integer()
+                            .null(),
+                    )
+                    .col(ColumnDef::new(TestResults::Line).integer().null())
+                    .col(
+                        ColumnDef::new(TestResults::DurationNs)
+                            .integer()
+                            .null(),
+                    )
+                    .col(ColumnDef::new(TestResults::Value).text().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_table(Table::drop().table(TestResults::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(TestCodePaths::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(TestNames::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(TestResultSets::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(UsersInfo::Table).to_owned())
+            .await?;
+        manager.drop_table(Table::drop().table(Users::Table).to_owned()).await?;
+        manager
+            .drop_table(Table::drop().table(BuilderTags::Table).to_owned())
+            .await?;
+        manager.drop_table(Table::drop().table(Tags::Table).to_owned()).await?;
+        manager
+            .drop_table(Table::drop().table(ObjectState::Table).to_owned())
+            .await?;
+        manager.drop_table(Table::drop().table(Objects::Table).to_owned()).await?;
+        manager
+            .drop_table(
+                Table::drop().table(CodebaseCommits::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(CodebaseBranches::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Codebases::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(ChangeSourceMasters::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(ChangeSources::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(SchedulerChanges::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(SchedulerMasters::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Schedulers::Table).to_owned())
+            .await?;
+        Ok(())
+    }
+}
+
+// ─── Table definitions ────────────────────────────────────────────────────────
+
+#[derive(Iden)]
+enum Schedulers {
+    Table,
+    Id,
+    Name,
+    NameHash,
+    Enabled,
+}
+
+#[derive(Iden)]
+enum SchedulerMasters {
+    Table,
+    Id,
+    Schedulerid,
+    Masterid,
+}
+
+#[derive(Iden)]
+enum SchedulerChanges {
+    Table,
+    Id,
+    Schedulerid,
+    Changeid,
+    Important,
+}
+
+#[derive(Iden)]
+enum ChangeSources {
+    Table,
+    Id,
+    Name,
+    NameHash,
+}
+
+#[derive(Iden)]
+enum ChangeSourceMasters {
+    Table,
+    Id,
+    Changesourceid,
+    Masterid,
+}
+
+#[derive(Iden)]
+enum Codebases {
+    Table,
+    Id,
+    Projectid,
+    Name,
+    NameHash,
+    Slug,
+}
+
+#[derive(Iden)]
+enum CodebaseBranches {
+    Table,
+    Id,
+    Codebaseid,
+    Name,
+    NameHash,
+    Commitid,
+    LastTimestamp,
+}
+
+#[derive(Iden)]
+enum CodebaseCommits {
+    Table,
+    Id,
+    Codebaseid,
+    Author,
+    Committer,
+    Comments,
+    WhenTimestamp,
+    Revision,
+    ParentCommitid,
+}
+
+#[derive(Iden)]
+enum Objects {
+    Table,
+    Id,
+    Name,
+    ClassName,
+}
+
+#[derive(Iden)]
+enum ObjectState {
+    Table,
+    Id,
+    Objectid,
+    Name,
+    ValueJson,
+}
+
+#[derive(Iden)]
+enum Tags {
+    Table,
+    Id,
+    Name,
+    NameHash,
+}
+
+#[derive(Iden)]
+enum BuilderTags {
+    Table,
+    Id,
+    Builderid,
+    Tagid,
+}
+
+#[derive(Iden)]
+enum Users {
+    Table,
+    Uid,
+    Identifier,
+    BbUsername,
+    BbPassword,
+}
+
+#[derive(Iden)]
+enum UsersInfo {
+    Table,
+    Id,
+    Uid,
+    AttrType,
+    AttrData,
+}
+
+#[derive(Iden)]
+enum TestResultSets {
+    Table,
+    Id,
+    Builderid,
+    Buildid,
+    Stepid,
+    Description,
+    Category,
+    ValueUnit,
+    TestsPassed,
+    TestsFailed,
+    Complete,
+}
+
+#[derive(Iden)]
+enum TestNames {
+    Table,
+    Id,
+    Builderid,
+    Name,
+}
+
+#[derive(Iden)]
+enum TestCodePaths {
+    Table,
+    Id,
+    Builderid,
+    Path,
+}
+
+#[derive(Iden)]
+enum TestResults {
+    Table,
+    Id,
+    Builderid,
+    TestResultSetid,
+    TestNameid,
+    TestCodePathid,
+    Line,
+    DurationNs,
+    Value,
+}

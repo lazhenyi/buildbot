@@ -1,0 +1,44 @@
+# Rust / Cargo
+/target/
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+**/target
+# Local database
+*.db
+*.db-journal
+
+# Config files with secrets
+*.local.toml
+.env
+
+# Logs
+*.log
+/logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+
+# Documentation builds
+/site/
+/book/
+
+# Misc
+buildbot.db

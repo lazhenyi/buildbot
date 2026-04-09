@@ -1,0 +1,1198 @@
+//! Initial schema - core tables
+
+use sea_orm_migration::prelude::*;
+
+#[derive(DeriveMigrationName)]
+pub struct Migration;
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        // Core tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(Masters::Table)
+                    .col(
+                        ColumnDef::new(Masters::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Masters::Name).string().not_null())
+                    .col(ColumnDef::new(Masters::NameHash).string().not_null())
+                    .col(
+                        ColumnDef::new(Masters::Active)
+                            .integer()
+                            .not_null()
+                            .default(1),
+                    )
+                    .col(
+                        ColumnDef::new(Masters::LastActive)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Projects::Table)
+                    .col(
+                        ColumnDef::new(Projects::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Projects::Name).string().not_null())
+                    .col(ColumnDef::new(Projects::NameHash).string().not_null())
+                    .col(ColumnDef::new(Projects::Slug).string().not_null())
+                    .col(ColumnDef::new(Projects::Description).text().null())
+                    .col(
+                        ColumnDef::new(Projects::DescriptionFormat)
+                            .string()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(Projects::DescriptionHtml)
+                            .text()
+                            .null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Workers::Table)
+                    .col(
+                        ColumnDef::new(Workers::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Workers::Name).string().not_null())
+                    .col(
+                        ColumnDef::new(Workers::Info)
+                            .string()
+                            .not_null()
+                            .default("{}".to_string()),
+                    )
+                    .col(
+                        ColumnDef::new(Workers::Paused)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(ColumnDef::new(Workers::PauseReason).text().null())
+                    .col(
+                        ColumnDef::new(Workers::Graceful)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Builders::Table)
+                    .col(
+                        ColumnDef::new(Builders::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Builders::Name).string().not_null())
+                    .col(ColumnDef::new(Builders::Description).text().null())
+                    .col(
+                        ColumnDef::new(Builders::DescriptionFormat)
+                            .string()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(Builders::DescriptionHtml)
+                            .text()
+                            .null(),
+                    )
+                    .col(ColumnDef::new(Builders::Projectid).integer().null())
+                    .col(ColumnDef::new(Builders::NameHash).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuilderMasters::Table)
+                    .col(
+                        ColumnDef::new(BuilderMasters::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuilderMasters::Builderid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuilderMasters::Masterid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ConfiguredWorkers::Table)
+                    .col(
+                        ColumnDef::new(ConfiguredWorkers::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ConfiguredWorkers::Buildermasterid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ConfiguredWorkers::Workerid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ConnectedWorkers::Table)
+                    .col(
+                        ColumnDef::new(ConnectedWorkers::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ConnectedWorkers::Masterid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ConnectedWorkers::Workerid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        // Build tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuildSets::Table)
+                    .col(
+                        ColumnDef::new(BuildSets::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildSets::ExternalIdstring)
+                            .text()
+                            .null(),
+                    )
+                    .col(ColumnDef::new(BuildSets::Reason).string().not_null())
+                    .col(
+                        ColumnDef::new(BuildSets::SubmittedAt)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildSets::Complete)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(ColumnDef::new(BuildSets::CompleteAt).integer().null())
+                    .col(ColumnDef::new(BuildSets::Results).integer().null())
+                    .col(ColumnDef::new(BuildSets::ParentBuildid).integer().null())
+                    .col(
+                        ColumnDef::new(BuildSets::ParentRelationship)
+                            .text()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildSets::RebuiltBuildid)
+                            .integer()
+                            .null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuildSetProperties::Table)
+                    .col(
+                        ColumnDef::new(BuildSetProperties::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildSetProperties::Buildsetid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildSetProperties::PropertyName)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildSetProperties::PropertyValue)
+                            .string()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuildSetSourceStamps::Table)
+                    .col(
+                        ColumnDef::new(BuildSetSourceStamps::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildSetSourceStamps::Buildsetid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildSetSourceStamps::Sourcestampid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(SourceStamps::Table)
+                    .col(
+                        ColumnDef::new(SourceStamps::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(SourceStamps::SsHash)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(SourceStamps::Branch).text().null())
+                    .col(ColumnDef::new(SourceStamps::Revision).text().null())
+                    .col(ColumnDef::new(SourceStamps::Patchid).integer().null())
+                    .col(
+                        ColumnDef::new(SourceStamps::Repository)
+                            .string()
+                            .not_null()
+                            .default("".to_string()),
+                    )
+                    .col(
+                        ColumnDef::new(SourceStamps::Codebase)
+                            .string()
+                            .not_null()
+                            .default("".to_string()),
+                    )
+                    .col(
+                        ColumnDef::new(SourceStamps::Project)
+                            .string()
+                            .not_null()
+                            .default("".to_string()),
+                    )
+                    .col(
+                        ColumnDef::new(SourceStamps::CreatedAt)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Patches::Table)
+                    .col(
+                        ColumnDef::new(Patches::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Patches::Patchlevel)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Patches::PatchBase64)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Patches::PatchAuthor)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Patches::PatchComment)
+                            .text()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Patches::Subdir).text().null())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuildRequests::Table)
+                    .col(
+                        ColumnDef::new(BuildRequests::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequests::Buildsetid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequests::Builderid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequests::Priority)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequests::Complete)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(ColumnDef::new(BuildRequests::Results).integer().null())
+                    .col(
+                        ColumnDef::new(BuildRequests::SubmittedAt)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequests::CompleteAt)
+                            .integer()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequests::WaitedFor)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuildRequestClaims::Table)
+                    .col(
+                        ColumnDef::new(BuildRequestClaims::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequestClaims::Brid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequestClaims::Masterid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildRequestClaims::ClaimedAt)
+                            .integer()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Builds::Table)
+                    .col(
+                        ColumnDef::new(Builds::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Builds::Number).integer().not_null())
+                    .col(
+                        ColumnDef::new(Builds::Builderid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Builds::Buildrequestid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Builds::Workerid).integer().null())
+                    .col(
+                        ColumnDef::new(Builds::Masterid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Builds::StartedAt)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Builds::CompleteAt).integer().null())
+                    .col(
+                        ColumnDef::new(Builds::LocksDurationS)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(
+                        ColumnDef::new(Builds::StateString)
+                            .text()
+                            .not_null()
+                            .default("".to_string()),
+                    )
+                    .col(ColumnDef::new(Builds::Results).integer().null())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuildProperties::Table)
+                    .col(
+                        ColumnDef::new(BuildProperties::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildProperties::Buildid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildProperties::Name)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildProperties::Value)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildProperties::Source)
+                            .string()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(BuildData::Table)
+                    .col(
+                        ColumnDef::new(BuildData::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(BuildData::Buildid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(BuildData::Name).string().not_null())
+                    .col(ColumnDef::new(BuildData::Value).binary().not_null())
+                    .col(ColumnDef::new(BuildData::Length).integer().not_null())
+                    .col(ColumnDef::new(BuildData::Source).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Steps::Table)
+                    .col(
+                        ColumnDef::new(Steps::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Steps::Number).integer().not_null())
+                    .col(ColumnDef::new(Steps::Name).string().not_null())
+                    .col(ColumnDef::new(Steps::Buildid).integer().not_null())
+                    .col(ColumnDef::new(Steps::StartedAt).integer().null())
+                    .col(
+                        ColumnDef::new(Steps::LocksAcquiredAt)
+                            .integer()
+                            .null(),
+                    )
+                    .col(ColumnDef::new(Steps::CompleteAt).integer().null())
+                    .col(
+                        ColumnDef::new(Steps::StateString)
+                            .text()
+                            .not_null()
+                            .default("".to_string()),
+                    )
+                    .col(ColumnDef::new(Steps::Results).integer().null())
+                    .col(
+                        ColumnDef::new(Steps::UrlsJson)
+                            .text()
+                            .not_null()
+                            .default("{}".to_string()),
+                    )
+                    .col(
+                        ColumnDef::new(Steps::Hidden)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Logs::Table)
+                    .col(
+                        ColumnDef::new(Logs::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Logs::Name).string().not_null())
+                    .col(ColumnDef::new(Logs::Slug).string().not_null())
+                    .col(ColumnDef::new(Logs::Stepid).integer().not_null())
+                    .col(
+                        ColumnDef::new(Logs::Complete)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(
+                        ColumnDef::new(Logs::NumLines)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(
+                        ColumnDef::new(Logs::LogType)
+                            .string()
+                            .not_null()
+                            .default("s".to_string()),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(LogChunks::Table)
+                    .col(
+                        ColumnDef::new(LogChunks::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(LogChunks::Logid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(LogChunks::FirstLine)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(LogChunks::LastLine)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(LogChunks::Content).binary().null())
+                    .col(
+                        ColumnDef::new(LogChunks::Compressed)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        // Change tables
+        manager
+            .create_table(
+                Table::create()
+                    .table(Changes::Table)
+                    .col(
+                        ColumnDef::new(Changes::Changeid)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Changes::Author).text().not_null())
+                    .col(ColumnDef::new(Changes::Committer).text().null())
+                    .col(ColumnDef::new(Changes::Comments).text().not_null())
+                    .col(ColumnDef::new(Changes::Branch).text().null())
+                    .col(ColumnDef::new(Changes::Revision).text().null())
+                    .col(ColumnDef::new(Changes::Revlink).text().null())
+                    .col(
+                        ColumnDef::new(Changes::WhenTimestamp)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Changes::Category).text().null())
+                    .col(
+                        ColumnDef::new(Changes::Repository)
+                            .text()
+                            .not_null()
+                            .default("".to_string()),
+                    )
+                    .col(
+                        ColumnDef::new(Changes::Codebase)
+                            .text()
+                            .not_null()
+                            .default("".to_string()),
+                    )
+                    .col(
+                        ColumnDef::new(Changes::Project)
+                            .text()
+                            .not_null()
+                            .default("".to_string()),
+                    )
+                    .col(
+                        ColumnDef::new(Changes::Sourcestampid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Changes::ParentChangeids)
+                            .integer()
+                            .null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ChangeFiles::Table)
+                    .col(
+                        ColumnDef::new(ChangeFiles::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeFiles::Changeid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeFiles::Filename)
+                            .text()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ChangeProperties::Table)
+                    .col(
+                        ColumnDef::new(ChangeProperties::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeProperties::Changeid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeProperties::PropertyName)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeProperties::PropertyValue)
+                            .string()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(ChangeUsers::Table)
+                    .col(
+                        ColumnDef::new(ChangeUsers::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ChangeUsers::Changeid)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(ChangeUsers::Uid).integer().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_table(Table::drop().table(ChangeUsers::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(ChangeProperties::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(ChangeFiles::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Changes::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(LogChunks::Table).to_owned())
+            .await?;
+        manager.drop_table(Table::drop().table(Logs::Table).to_owned()).await?;
+        manager.drop_table(Table::drop().table(Steps::Table).to_owned()).await?;
+        manager
+            .drop_table(Table::drop().table(BuildData::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(BuildProperties::Table).to_owned(),
+            )
+            .await?;
+        manager.drop_table(Table::drop().table(Builds::Table).to_owned()).await?;
+        manager
+            .drop_table(
+                Table::drop()
+                    .table(BuildRequestClaims::Table)
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(BuildRequests::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Patches::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(SourceStamps::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(
+                Table::drop()
+                    .table(BuildSetSourceStamps::Table)
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(BuildSetProperties::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(BuildSets::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(ConnectedWorkers::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(
+                Table::drop().table(ConfiguredWorkers::Table).to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(BuilderMasters::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Builders::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Workers::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Projects::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Masters::Table).to_owned())
+            .await?;
+        Ok(())
+    }
+}
+
+// ─── Table definitions ────────────────────────────────────────────────────────
+
+#[derive(Iden)]
+enum Masters {
+    Table,
+    Id,
+    Name,
+    NameHash,
+    Active,
+    LastActive,
+}
+
+#[derive(Iden)]
+enum Projects {
+    Table,
+    Id,
+    Name,
+    NameHash,
+    Slug,
+    Description,
+    DescriptionFormat,
+    DescriptionHtml,
+}
+
+#[derive(Iden)]
+enum Workers {
+    Table,
+    Id,
+    Name,
+    Info,
+    Paused,
+    PauseReason,
+    Graceful,
+}
+
+#[derive(Iden)]
+enum Builders {
+    Table,
+    Id,
+    Name,
+    Description,
+    DescriptionFormat,
+    DescriptionHtml,
+    Projectid,
+    NameHash,
+}
+
+#[derive(Iden)]
+enum BuilderMasters {
+    Table,
+    Id,
+    Builderid,
+    Masterid,
+}
+
+#[derive(Iden)]
+enum ConfiguredWorkers {
+    Table,
+    Id,
+    Buildermasterid,
+    Workerid,
+}
+
+#[derive(Iden)]
+enum ConnectedWorkers {
+    Table,
+    Id,
+    Masterid,
+    Workerid,
+}
+
+#[derive(Iden)]
+enum BuildSets {
+    Table,
+    Id,
+    ExternalIdstring,
+    Reason,
+    SubmittedAt,
+    Complete,
+    CompleteAt,
+    Results,
+    ParentBuildid,
+    ParentRelationship,
+    RebuiltBuildid,
+}
+
+#[derive(Iden)]
+enum BuildSetProperties {
+    Table,
+    Id,
+    Buildsetid,
+    PropertyName,
+    PropertyValue,
+}
+
+#[derive(Iden)]
+enum BuildSetSourceStamps {
+    Table,
+    Id,
+    Buildsetid,
+    Sourcestampid,
+}
+
+#[derive(Iden)]
+enum SourceStamps {
+    Table,
+    Id,
+    SsHash,
+    Branch,
+    Revision,
+    Patchid,
+    Repository,
+    Codebase,
+    Project,
+    CreatedAt,
+}
+
+#[derive(Iden)]
+enum Patches {
+    Table,
+    Id,
+    Patchlevel,
+    PatchBase64,
+    PatchAuthor,
+    PatchComment,
+    Subdir,
+}
+
+#[derive(Iden)]
+enum BuildRequests {
+    Table,
+    Id,
+    Buildsetid,
+    Builderid,
+    Priority,
+    Complete,
+    Results,
+    SubmittedAt,
+    CompleteAt,
+    WaitedFor,
+}
+
+#[derive(Iden)]
+enum BuildRequestClaims {
+    Table,
+    Id,
+    Brid,
+    Masterid,
+    ClaimedAt,
+}
+
+#[derive(Iden)]
+enum Builds {
+    Table,
+    Id,
+    Number,
+    Builderid,
+    Buildrequestid,
+    Workerid,
+    Masterid,
+    StartedAt,
+    CompleteAt,
+    LocksDurationS,
+    StateString,
+    Results,
+}
+
+#[derive(Iden)]
+enum BuildProperties {
+    Table,
+    Id,
+    Buildid,
+    Name,
+    Value,
+    Source,
+}
+
+#[derive(Iden)]
+enum BuildData {
+    Table,
+    Id,
+    Buildid,
+    Name,
+    Value,
+    Length,
+    Source,
+}
+
+#[derive(Iden)]
+enum Steps {
+    Table,
+    Id,
+    Number,
+    Name,
+    Buildid,
+    StartedAt,
+    LocksAcquiredAt,
+    CompleteAt,
+    StateString,
+    Results,
+    UrlsJson,
+    Hidden,
+}
+
+#[derive(Iden)]
+enum Logs {
+    Table,
+    Id,
+    Name,
+    Slug,
+    Stepid,
+    Complete,
+    NumLines,
+    LogType,
+}
+
+#[derive(Iden)]
+enum LogChunks {
+    Table,
+    Id,
+    Logid,
+    FirstLine,
+    LastLine,
+    Content,
+    Compressed,
+}
+
+#[derive(Iden)]
+enum Changes {
+    Table,
+    Changeid,
+    Author,
+    Committer,
+    Comments,
+    Branch,
+    Revision,
+    Revlink,
+    WhenTimestamp,
+    Category,
+    Repository,
+    Codebase,
+    Project,
+    Sourcestampid,
+    ParentChangeids,
+}
+
+#[derive(Iden)]
+enum ChangeFiles {
+    Table,
+    Id,
+    Changeid,
+    Filename,
+}
+
+#[derive(Iden)]
+enum ChangeProperties {
+    Table,
+    Id,
+    Changeid,
+    PropertyName,
+    PropertyValue,
+}
+
+#[derive(Iden)]
+enum ChangeUsers {
+    Table,
+    Id,
+    Changeid,
+    Uid,
+}

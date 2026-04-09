@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buildbot Dispatcher - CI System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <h1 class="site-title">Buildbot Dispatcher</h1>
+                <nav class="site-nav">
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/jobs">Jobs</a>
+                    <a href="/runners">Runners</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="welcome-panel">
+            <h2>Welcome to Buildbot Dispatcher</h2>
+            <p class="subtitle">GitHub Actions-style CI Dispatcher System</p>
+            <div class="api-links">
+                <h3>API Endpoints</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Endpoint</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/info</code></td>
+                            <td>Dispatcher information</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/projects</code></td>
+                            <td>List all projects</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/builders</code></td>
+                            <td>List all builders</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/builds</code></td>
+                            <td>List builds</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/builds/{id}</code></td>
+                            <td>Build details</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><code>/api/v1/jobs/enqueue</code></td>
+                            <td>Enqueue a new job</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/jobs</code></td>
+                            <td>List dispatcher jobs</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/jobs/poll</code></td>
+                            <td>Runner polls for pending jobs</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><code>/api/v1/jobs/{id}/complete</code></td>
+                            <td>Mark job as complete</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><code>/api/v1/jobs/{id}/cancel</code></td>
+                            <td>Cancel a job</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/runners</code></td>
+                            <td>List registered runners</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><code>/api/v1/runners/register</code></td>
+                            <td>Register a new runner</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><code>/api/v1/runners/{id}/heartbeat</code></td>
+                            <td>Runner heartbeat</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-post">POST</span></td>
+                            <td><code>/api/v1/runners/{id}/unregister</code></td>
+                            <td>Unregister a runner</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/changes</code></td>
+                            <td>List source changes</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge method-get">GET</span></td>
+                            <td><code>/api/v1/steps/{build_id}</code></td>
+                            <td>Build steps</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>Buildbot Dispatcher &mdash; Rust CI System &mdash; <span id="version">v0.1.0</span></p>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDispatcherInfo();
+        });
+    </script>
+</body>
+</html>

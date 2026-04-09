@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs - Buildbot Dispatcher</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <h1 class="site-title">Buildbot Dispatcher</h1>
+                <nav class="site-nav">
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/jobs" class="active">Jobs</a>
+                    <a href="/runners">Runners</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h2>Jobs</h2>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="showEnqueueModal()">Enqueue Job</button>
+                <button class="btn btn-primary" onclick="loadJobs()">Refresh</button>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <label>Filter by status:
+                <select id="status-filter" onchange="loadJobs()">
+                    <option value="">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="running">Running</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </label>
+        </div>
+
+        <section class="panel">
+            <div id="jobs-loading" class="loading">Loading...</div>
+            <table class="data-table" id="jobs-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Runner</th>
+                        <th>Labels</th>
+                        <th>Created</th>
+                        <th>Started</th>
+                        <th>Completed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="jobs-body"></tbody>
+            </table>
+            <div id="jobs-empty" class="empty-state" style="display:none">No jobs found.</div>
+        </section>
+    </main>
+
+    <div id="enqueue-modal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Enqueue New Job</h3>
+                <button class="modal-close" onclick="closeEnqueueModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Job Name:</label>
+                    <input type="text" id="job-name" placeholder="my-job">
+                </div>
+                <div class="form-group">
+                    <label>Runner Labels (comma-separated):</label>
+                    <input type="text" id="job-labels" placeholder="ubuntu, docker">
+                </div>
+                <div class="form-group">
+                    <label>Timeout (seconds):</label>
+                    <input type="number" id="job-timeout" value="3600">
+                </div>
+                <div class="form-group">
+                    <label>Script:</label>
+                    <textarea id="job-script" rows="6" placeholder="echo 'Hello World'"></textarea>
+                </div>
+                <div id="enqueue-result" class="result-box" style="display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="enqueueJob()">Submit</button>
+                <button class="btn btn-secondary" onclick="closeEnqueueModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>Buildbot Dispatcher &mdash; Rust CI System</p>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadJobs();
+        });
+    </script>
+</body>
+</html>
