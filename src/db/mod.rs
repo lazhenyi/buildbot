@@ -142,7 +142,7 @@ impl Database {
                 ..Default::default()
             });
 
-        let mut updated: builds::ActiveModel = build.into();
+        let mut updated = build;
         updated.results = ActiveValue::Set(Some(results));
         updated.complete_at = ActiveValue::Set(Some(now));
         updated.state_string = ActiveValue::Set(state_string.to_string());
@@ -261,7 +261,7 @@ impl Database {
                 ..Default::default()
             });
 
-        let mut updated: steps::ActiveModel = step.into();
+        let mut updated = step;
         updated.results = ActiveValue::Set(Some(results));
         updated.complete_at = ActiveValue::Set(Some(now));
         updated.state_string = ActiveValue::Set(state_string.to_string());
@@ -313,7 +313,7 @@ impl Database {
             .unwrap_or(-1);
 
         let first_line = last_line + 1;
-        let last_line = first_line + num_lines as i32 - 1;
+        let last_line = first_line + num_lines - 1;
 
         let chunk = log_chunks::ActiveModel {
             logid: ActiveValue::Set(log_id),
@@ -347,7 +347,7 @@ impl Database {
                 id: ActiveValue::Unchanged(log_id),
                 ..Default::default()
             });
-        let mut updated: logs::ActiveModel = log.into();
+        let mut updated = log;
         updated.complete = ActiveValue::Set(1);
         updated.update(&self.conn).await?;
         Ok(())
@@ -440,7 +440,7 @@ impl Database {
                 id: ActiveValue::Unchanged(br_id),
                 ..Default::default()
             });
-        let mut updated: build_requests::ActiveModel = br.into();
+        let mut updated = br;
         updated.complete = ActiveValue::Set(1);
         updated.results = ActiveValue::Set(Some(results));
         updated.complete_at = ActiveValue::Set(Some(now));
@@ -606,7 +606,7 @@ impl Database {
             id: ActiveValue::NotSet,
             job_id: ActiveValue::set(job.id.clone()),
             name: ActiveValue::set(job.name.clone()),
-            sort_key: ActiveValue::set(job.sort_key as i32),
+            sort_key: ActiveValue::set(job.sort_key),
             status: ActiveValue::set(job.status.to_string()),
             labels: ActiveValue::set(serde_json::to_string(&job.labels).unwrap()),
             source_type: ActiveValue::set(format!("{:?}", job.source)),

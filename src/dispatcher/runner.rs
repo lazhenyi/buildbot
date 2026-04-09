@@ -4,19 +4,14 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Runner type determines lifecycle management
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RunnerType {
     /// Persistent runner — stays online, polls for jobs continuously
+    #[default]
     Persistent,
     /// Ephemeral runner — one-shot, takes one job then exits
     Ephemeral,
-}
-
-impl Default for RunnerType {
-    fn default() -> Self {
-        RunnerType::Persistent
-    }
 }
 
 impl From<&str> for RunnerType {

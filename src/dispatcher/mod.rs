@@ -246,15 +246,15 @@ impl DispatcherState {
         let name_lower = script.job_name.to_lowercase();
 
         // Auto-detect labels from name
-        if name_lower.contains("docker") || name_lower.contains("container") {
-            if !labels.contains(&"docker".to_string()) {
-                labels.push("docker".to_string());
-            }
+        if (name_lower.contains("docker") || name_lower.contains("container"))
+            && !labels.contains(&"docker".to_string())
+        {
+            labels.push("docker".to_string());
         }
-        if name_lower.contains("gpu") || name_lower.contains("cuda") {
-            if !labels.contains(&"gpu".to_string()) {
-                labels.push("gpu".to_string());
-            }
+        if (name_lower.contains("gpu") || name_lower.contains("cuda"))
+            && !labels.contains(&"gpu".to_string())
+        {
+            labels.push("gpu".to_string());
         }
         if name_lower.contains("windows") || filename_lower.contains("win") {
             if !labels.contains(&"windows".to_string()) {

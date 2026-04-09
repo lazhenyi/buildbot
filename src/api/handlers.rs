@@ -87,7 +87,7 @@ pub async fn handle_github_webhook(
     let revision = commit
         .and_then(|c| c.id.as_ref())
         .map(|s| s.as_str())
-        .or_else(|| payload.after.as_ref().map(|s| s.as_str()));
+        .or_else(|| payload.after.as_deref());
 
     let branch = payload
         .git_ref

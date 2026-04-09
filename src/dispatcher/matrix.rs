@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Matrix configuration from `.ci/matrix.json`
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct MatrixConfig {
     /// List of matrix dimensions
     #[serde(default)]
@@ -12,15 +12,6 @@ pub struct MatrixConfig {
     /// Optional matrix dimensions (alternative format)
     #[serde(default)]
     pub matrix: Option<HashMap<String, Vec<serde_json::Value>>>,
-}
-
-impl Default for MatrixConfig {
-    fn default() -> Self {
-        Self {
-            include: vec![],
-            matrix: None,
-        }
-    }
 }
 
 /// A single matrix include entry

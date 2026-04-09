@@ -189,6 +189,7 @@ pub async fn get_latest_revision(workdir: &Path) -> Result<String> {
 }
 
 /// Scan CI directory and create jobs
+#[allow(clippy::too_many_arguments)]
 pub async fn scan_ci_directory(
     dispatcher: &DispatcherState,
     repo_url: &str,

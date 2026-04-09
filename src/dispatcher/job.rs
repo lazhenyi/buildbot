@@ -4,10 +4,11 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Job execution status
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum JobStatus {
     /// Waiting to be dispatched to a runner
+    #[default]
     Pending,
     /// Sent to a runner, runner has not yet acknowledged
     Dispatched,
@@ -21,12 +22,6 @@ pub enum JobStatus {
     Cancelled,
     /// Runner disappeared without completing (treated as failed)
     Lost,
-}
-
-impl Default for JobStatus {
-    fn default() -> Self {
-        JobStatus::Pending
-    }
 }
 
 impl std::fmt::Display for JobStatus {

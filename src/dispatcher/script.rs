@@ -71,12 +71,12 @@ impl ScriptScanner {
             }
             // Strip version specifiers: flask>=2.0 → flask, requests==2.28.0 → requests
             let name = line
-                .split(|c: char| c == '<' || c == '>' || c == '=' || c == '!' || c == '[')
+                .split(['<', '>', '=', '!', '['])
                 .next()
                 .unwrap_or(line)
                 .trim()
                 .split('/')
-                .last()
+                .next_back()
                 .unwrap_or(line)
                 .trim()
                 .to_lowercase()
@@ -130,7 +130,7 @@ impl ScriptScanner {
         }
 
         // Sort by numeric prefix first, then alphabetically
-        scripts.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
+        scripts.sort_by_key(|a| a.sort_key());
         scripts
     }
 
